@@ -1,0 +1,19 @@
+# 统一按 LF 存储，避免在 Windows 上提交、Linux 上拉取时出现整文件 diff。
+* text=auto eol=lf
+
+# 明确的二进制资产，禁止任何行尾转换与文本 diff。
+*.webp binary
+*.jpg binary
+*.png binary
+*.ico binary
+
+# 生成的 bundle 虽然可 diff，但按语言高亮更省事；同时保持原样不转行尾。
+lib/client.js      text eol=lf linguist-generated=true
+lib/client.js.map  text eol=lf linguist-generated=true
+
+# 锁文件在 GitHub 上折叠显示。
+package-lock.json  text eol=lf linguist-generated=true
+
+# 第三方风格检测：把素材目录标记为文档/资源，不计入语言统计。
+assets/** linguist-documentation
+assets/portrait/** linguist-vendored
