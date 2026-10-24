@@ -536,6 +536,8 @@ body[data-wk-skin="on"] .wk-effort-control__range::-webkit-slider-thumb {
 
 .wk-appearance-choice__label {
   display: block;
+  /* 名字从两个字变成五个字（如意金箍棒），窄屏下不能折行把按钮撑高。 */
+  white-space: nowrap;
 }
 
 /* Keep the host's three theme cubes untouched. These rules only style the

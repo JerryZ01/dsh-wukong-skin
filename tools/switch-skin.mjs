@@ -19,7 +19,7 @@ import { join } from "node:path";
 const PROFILES_DIR = join(process.env.DSH_HOME ?? join(homedir(), ".dsh"), "profiles");
 
 const PLUGIN = {
-  label: "滑动变佛",
+  label: "如意金箍棒",
   dependency: "@daily-vibe/dsh-client-wukong-intensity-skin",
 };
 

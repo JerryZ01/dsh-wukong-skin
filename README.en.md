@@ -1,14 +1,17 @@
-# Slide to Buddha · a DeepSeek Harness skin
+# Ruyi Jingu Bang · a DeepSeek Harness skin
 
 [简体中文](README.md) | English
 
 Drag a single intensity slider and watch Sun Wukong grow from a stone monkey into the Victorious Fighting Buddha. The UI palette, the light/dark theme and the portrait all move together —and the slider can drive the model's own reasoning effort, so changing a setting finally has a picture attached to it.
 
+> **Why the name**: *Ruyi Jingu Bang* is the staff's full original name — the Dragon King's gift in chapter 11. *Ruyi* (如意) means "as you wish", which is exactly what this thing does: the effort level goes wherever you want it. The staff grows and shrinks; the slider gets stronger and weaker.
+
 ![The 31-frame portrait ladder](assets/ladder-preview.jpg)
 
 - **Six ranks**: Stone Monkey → Handsome Monkey King → Great Sage Equal to Heaven → Sun the Pilgrim → Victorious Fighting Buddha → Victorious Fighting Ancestor
 - **31 portrait frames**, one for every level from 0 to 30 (15 and 27 are costume-change bridges between ranks)
-- **Adaptive palette**: rice-paper white → ochre → peach gold → furnace fire → black and gold, all interpolated from one table
+- **Adaptive palette**: rice-paper white → ochre → peach gold → furnace fire → black and gold, six stops interpolated by rank, with the UI variables and the portrait backdrop sharing one source
+- **Four real clips**: a line appears on every rank change, optionally read aloud (off by default)
 - **Leaves the host alone**: the switch lives inside the native *Settings → General → Appearance* row, and clicking any native theme button leaves the skin
 
 ## Install
@@ -18,7 +21,7 @@ Drag a single intensity slider and watch Sun Wukong grow from a stone monkey int
 No command line needed. **Copy the whole block below and paste it to DSH** — it checks for conflicts, installs, then verifies:
 
 ```text
-Please install the "Slide to Buddha" skin into DSH's desktop profile. Check for
+Please install the "Ruyi Jingu Bang" skin into DSH's desktop profile. Check for
 conflicts first and only install once you have confirmed it is safe.
 
 1. Before installing, read the desktop profile's package.json (dependencies and
@@ -163,10 +166,10 @@ Everything lives in **Settings → General → Appearance**, right next to the n
 
 | Control | Effect |
 | --- | --- |
-| `滑动变佛` (Wukong) | Shows the slider and turns on the portrait, backdrop and adaptive palette |
+| `如意金箍棒` (Ruyi) | Shows the slider and turns on the portrait, backdrop and adaptive palette |
 | Native `Light` / `Dark` / `Follow system` | Removes the backdrop, the skin variables and the slider; returns to that native appearance |
-| `滑动变佛绑定思考等级` (bind effort) | When off, the slider only changes the look and leaves the model's reasoning effort alone |
-| `滑动变佛念出台词` (speak the line) | Reads a clip when you cross a rank; off by default |
+| `金箍棒绑定思考等级` (bind effort) | When off, the slider only changes the look and leaves the model's reasoning effort alone |
+| `金箍棒念出台词` (speak the line) | Reads a clip when you cross a rank; off by default |
 
 Both switches only appear while the skin is enabled, and both persist in browser localStorage:
 
@@ -247,7 +250,7 @@ It assembles a throwaway profile in a temp directory to verify patch-layer order
 
 ## Troubleshooting
 
-**Installed, but there is no "Slide to Buddha" in Settings.**
+**Installed, but there is no "Ruyi Jingu Bang" in Settings.**
 
 In order:
 

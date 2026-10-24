@@ -167,7 +167,7 @@ check("the appearance button joins the native cube row", () => {
   const custom = row.querySelector(".wk-appearance-choice");
   assert.ok(custom !== null, "no appearance button");
   assert.equal(custom.getAttribute("aria-pressed"), "true");
-  assert.ok(custom.textContent.includes("滑动变佛"), `unexpected label: ${custom.textContent}`);
+  assert.ok(custom.textContent.includes("如意金箍棒"), `unexpected label: ${custom.textContent}`);
   assert.equal(custom.querySelector(".wk-appearance-choice__icon").textContent, "☯");
   assert.equal(row.children.length, 4, "the three native cubes must survive");
 });
@@ -190,7 +190,8 @@ check("every slot registered with a distinct id", () => {
 check("the settings row is localized", () => {
   assert.equal(locales.length, 1);
   assert.equal(locales[0].namespace, "wukong.skin");
-  assert.equal(locales[0].table.zh["effort.binding"], "滑动变佛绑定思考等级");
+  assert.equal(locales[0].table.zh["effort.binding"], "金箍棒绑定思考等级");
+  assert.equal(locales[0].table.zh["effort.speak"], "金箍棒念出台词");
 });
 
 console.log("");

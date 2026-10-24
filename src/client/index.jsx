@@ -562,7 +562,8 @@ export function apply(ctx) {
 
   ctx.effect(
     () => ctx.locale.register(LOCALE_NAMESPACE, {
-      zh: { "effort.binding": "滑动变佛绑定思考等级", "effort.speak": "滑动变佛念出台词" },
+      // 「如意金箍棒」五个字放在开关前缀太长，设置里用简称「金箍棒」。
+      zh: { "effort.binding": "金箍棒绑定思考等级", "effort.speak": "金箍棒念出台词" },
       en: { "effort.binding": "Bind slider to reasoning level", "effort.speak": "Speak the line aloud" },
     }),
     "wukong-intensity-skin: settings locale",

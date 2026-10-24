@@ -63,7 +63,7 @@ export function installWukongAppearanceButton(scope, presenter, packageId) {
     button.className = WUKONG_APPEARANCE_BUTTON;
     button.type = "button";
     button.dataset.plugin = packageId;
-    button.setAttribute("aria-label", "滑动变佛");
+    button.setAttribute("aria-label", "如意金箍棒");
 
     const icon = document.createElement("span");
     icon.className = "wk-appearance-choice__icon";
@@ -72,7 +72,8 @@ export function installWukongAppearanceButton(scope, presenter, packageId) {
 
     const label = document.createElement("span");
     label.className = "wk-appearance-choice__label";
-    label.textContent = english ? "Wukong" : "滑动变佛";
+    // 中文用全名，英文用 Ruyi——五个汉字的按钮会挤，英文更短。
+    label.textContent = english ? "Ruyi" : "如意金箍棒";
     button.append(icon, label);
     const handleCustomClick = () => { void choose(true); };
     button.addEventListener("click", handleCustomClick);
