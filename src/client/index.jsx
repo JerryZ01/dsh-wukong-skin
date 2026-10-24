@@ -7,8 +7,10 @@ import {
   PREVIEW_MAX_FRAME,
   frameForEffort,
   indicatorLabel,
+  lineForFrame,
   nearestEffortIndex,
   paletteForFrame,
+  rankIndexForFrame,
   selectedEffortIndex,
 } from "./logic.js";
 
@@ -271,6 +273,8 @@ function WukongEffortSlider({ directory, load, select, presenter, scope }) {
   const previewEffort = efforts[previewIndex];
   const progressRatio = frame / PREVIEW_MAX_FRAME;
   const tooltipLabel = indicatorLabel(frame, bindEffort ? efforts : []);
+  const line = lineForFrame(frame);
+  const rankIndex = rankIndexForFrame(frame);
 
   const commit = async (rawFrame) => {
     if (!bindEffort) {
@@ -307,6 +311,7 @@ function WukongEffortSlider({ directory, load, select, presenter, scope }) {
       className="wk-effort-control"
       data-plugin={PACKAGE_ID}
       data-state={failed ? "error" : pending ? "pending" : "ready"}
+      data-interacting={interacting ? "true" : "false"}
       title={bindEffort ? previewEffort?.name : undefined}
     >
       {interacting && (
@@ -316,6 +321,13 @@ function WukongEffortSlider({ directory, load, select, presenter, scope }) {
         >
           {tooltipLabel}
         </output>
+      )}
+      {/* 台词：跨果位时换一句。key 用 rank 让它重挂载，淡入动画才会重放。 */}
+      {line !== undefined && (
+        <p className="wk-effort-control__line" key={rankIndex} aria-live="polite">
+          <span className="wk-effort-control__line-text">{line.text}</span>
+          <span className="wk-effort-control__line-source">{line.source}</span>
+        </p>
       )}
       <div className="wk-effort-control__ticks" aria-hidden="true">
         {efforts.map((effort, index) => (

@@ -35,10 +35,14 @@ export function selectedEffortIndex(efforts, selectedId, defaultId) {
   return id === undefined ? -1 : efforts.findIndex((effort) => effort.id === id);
 }
 
-export function rankForFrame(rawFrame) {
+export function rankIndexForFrame(rawFrame) {
   const level = (clampFrame(rawFrame) / PREVIEW_MAX_FRAME) * MAX_LEVEL;
   const index = level >= MAX_LEVEL ? RANKS.length - 1 : Math.floor(level / 6);
-  return RANKS[Math.min(RANKS.length - 1, Math.max(0, index))];
+  return Math.min(RANKS.length - 1, Math.max(0, index));
+}
+
+export function rankForFrame(rawFrame) {
+  return RANKS[rankIndexForFrame(rawFrame)];
 }
 
 export function indicatorLabel(rawFrame, efforts) {
@@ -47,6 +51,32 @@ export function indicatorLabel(rawFrame, efforts) {
     ? rankForFrame(rawFrame)
     : `${rankForFrame(rawFrame)} · ${effort.name}`;
 }
+
+// ---- 台词 --------------------------------------------------------------
+// 每个果位一句，全部逐字核对过原著（正文用繁体，这里转成简体）：
+//   石猴     第 1 回  猴王忧生死，「将来年老血衰，暗中有阎王老子管着」
+//   美猴王   第 3 回  龙宫试金箍棒，「忒粗忒长些，再短细些方可用」
+//   齐天大圣 第 7 回  大闹天宫，「皇帝轮流做，明年到我家」
+//   孙行者   第 24 回 行者劝唐僧，「念念回首处，即是灵山」
+//   斗战胜佛 第 100 回 成佛后，「师父，此时我已成佛，与你一般」
+//   斗战胜祖 第 100 回 摸头不见金箍，「趁早儿念个松箍儿咒，脱下来，打得粉碎」
+//
+// 「心生种种魔生，心灭种种魔灭」很想用，但那是第 13 回**唐僧**说的，
+// 安到悟空头上算张冠李戴，所以没有收。
+export const LINES = [
+  { rank: 0, text: "将来年老血衰，暗中有阎王老子管着。", source: "第一回" },
+  { rank: 1, text: "忒粗忒长些，再短细些方可用。", source: "第三回" },
+  { rank: 2, text: "皇帝轮流做，明年到我家。", source: "第七回" },
+  { rank: 3, text: "念念回首处，即是灵山。", source: "第二十四回" },
+  { rank: 4, text: "师父，此时我已成佛，与你一般。", source: "第一百回" },
+  { rank: 5, text: "趁早儿念个松箍儿咒，脱下来，打得粉碎。", source: "第一百回" },
+];
+
+export function lineForFrame(rawFrame) {
+  return LINES[rankIndexForFrame(rawFrame)];
+}
+
+
 
 function lerp(a, b, amount) {
   return a + (b - a) * amount;

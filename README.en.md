@@ -98,6 +98,7 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 `remove` also drops it from `dsh.profile.bundles`; after a restart the settings entry is gone.
 
 > **This skin is mutually exclusive with other skins.** It prepends a backdrop to `body`, overwrites a batch of `--dsw-alias-*` variables and calls `theme.setTheme()`. Running it alongside a sibling skin such as *Slide to Ancestor* makes the two paint over each other. Keep exactly one per profile — see "Switching between skins" below.
+
 ## Usage
 
 ### The slider
@@ -108,6 +109,23 @@ A track appears at the right edge of the composer. It reads **the current model'
 - While dragging, the skin only previews. Nothing is committed.
 - On pointer-up, keyboard completion or blur, it snaps to the nearest step and commits that step's original ID through the official `ModelDirectory`.
 - Models without reasoning support, or with a single selectable step, show no slider. Addressed subagents show none either.
+
+### The line
+
+A line of original novel dialogue sits above the track and **changes once per rank**, six in total:
+
+| Rank | Line | Chapter |
+| --- | --- | --- |
+| Stone Monkey | 将来年老血衰，暗中有阎王老子管着。 | 1 |
+| Handsome Monkey King | 忒粗忒长些，再短细些方可用。 | 3 |
+| Great Sage Equal to Heaven | 皇帝轮流做，明年到我家。 | 7 |
+| Sun the Pilgrim | 念念回首处，即是灵山。 | 24 |
+| Victorious Fighting Buddha | 师父，此时我已成佛，与你一般。 | 100 |
+| Victorious Fighting Ancestor | 趁早儿念个松箍儿咒，脱下来，打得粉碎。 | 100 |
+
+All six were checked word for word against the 100-chapter source text. One famous line was deliberately left out: 「心生种种魔生，心灭种种魔灭」 is spoken by **Tang Seng in chapter 13**, not by Wukong, so putting it here would be a misattribution.
+
+The line follows the thumb immediately — it does not wait for the commit — and fades to 35% while you drag so it does not compete with the step tooltip.
 
 ### The appearance row
 

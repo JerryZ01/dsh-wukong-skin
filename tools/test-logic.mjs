@@ -7,12 +7,14 @@
 
 import assert from "node:assert/strict";
 import {
+  LINES,
   MAX_LEVEL,
   PREVIEW_MAX_FRAME,
   RANKS,
   clampFrame,
   frameForEffort,
   indicatorLabel,
+  lineForFrame,
   nearestEffortIndex,
   paletteForFrame,
   rankForFrame,
@@ -104,6 +106,64 @@ check("the indicator joins the rank with the effort name", () => {
 
 check("without efforts the indicator shows the rank alone", () => {
   assert.equal(indicatorLabel(120, []), "齐天大圣");
+});
+
+console.log("");
+console.log("lines");
+
+check("there is exactly one line per rank, in rank order", () => {
+  assert.equal(LINES.length, RANKS.length);
+  assert.deepEqual(LINES.map((line) => line.rank), [0, 1, 2, 3, 4, 5]);
+});
+
+check("each line carries a chapter citation", () => {
+  for (const line of LINES) {
+    assert.ok(line.text.length > 0, `rank ${line.rank} has no text`);
+    assert.match(line.source, /^第.+回$/, `rank ${line.rank} source: ${line.source}`);
+  }
+});
+
+check("the line changes exactly at each rank boundary", () => {
+  const at = (level) => lineForFrame((level / MAX_LEVEL) * PREVIEW_MAX_FRAME).rank;
+  assert.equal(at(0), 0);
+  assert.equal(at(5), 0);
+  assert.equal(at(6), 1);
+  assert.equal(at(11), 1);
+  assert.equal(at(12), 2);
+  assert.equal(at(18), 3);
+  assert.equal(at(23), 3);
+  assert.equal(at(24), 4);
+  assert.equal(at(29), 4);
+  assert.equal(at(30), 5);
+});
+
+check("the line never goes missing across the whole slider range", () => {
+  for (let frame = 0; frame <= PREVIEW_MAX_FRAME; frame += 1) {
+    const line = lineForFrame(frame);
+    assert.ok(line !== undefined && line.text.length > 0, `frame ${frame} has no line`);
+  }
+});
+
+check("out-of-range frames still resolve to a line", () => {
+  assert.equal(lineForFrame(Number.NaN).rank, 0);
+  assert.equal(lineForFrame(-999).rank, 0);
+  assert.equal(lineForFrame(9999).rank, 5);
+});
+
+check("the four best-known lines are the ones in the source text", () => {
+  // 逐字对照原著，改了就得重新核对，所以钉死在测试里。
+  const byRank = Object.fromEntries(LINES.map((line) => [line.rank, line.text]));
+  assert.equal(byRank[2], "皇帝轮流做，明年到我家。");
+  assert.equal(byRank[3], "念念回首处，即是灵山。");
+  assert.match(byRank[1], /忒粗忒长些，再短细些方可用。/);
+  assert.match(byRank[0], /暗中有阎王老子管着/);
+});
+
+check("no line is attributed to a speaker other than Wukong", () => {
+  // 「心生种种魔生，心灭种种魔灭」是第 13 回唐僧说的，不该出现在这里。
+  for (const line of LINES) {
+    assert.ok(!line.text.includes("种种魔"), `rank ${line.rank} uses a Tang Seng line`);
+  }
 });
 
 console.log("");

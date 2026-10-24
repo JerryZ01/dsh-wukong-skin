@@ -230,6 +230,19 @@ check("the tooltip is hidden until the user interacts", () => {
   assert.equal(container.querySelector(".wk-effort-control__tooltip"), null);
 });
 
+const lineNode = () => container.querySelector(".wk-effort-control__line");
+
+check("a line from the source text is always on screen", () => {
+  const line = lineNode();
+  assert.ok(line !== null, "no line rendered");
+  assert.equal(line.querySelector(".wk-effort-control__line-text").textContent, "趁早儿念个松箍儿咒，脱下来，打得粉碎。");
+  assert.equal(line.querySelector(".wk-effort-control__line-source").textContent, "第一百回");
+});
+
+check("the line is polite to screen readers", () => {
+  assert.equal(lineNode().getAttribute("aria-live"), "polite");
+});
+
 await act(async () => {
   range().dispatchEvent(new window.Event("pointerdown", { bubbles: true }));
 });
@@ -237,6 +250,10 @@ check("pressing the thumb reveals the preview tooltip", () => {
   const tooltip = container.querySelector(".wk-effort-control__tooltip");
   assert.ok(tooltip !== null, "tooltip did not appear");
   assert.equal(tooltip.textContent, "斗战胜祖 · 深度");
+});
+
+check("the control marks itself as interacting so the line can fade back", () => {
+  assert.equal(container.querySelector(".wk-effort-control").dataset.interacting, "true");
 });
 
 await act(async () => {
@@ -259,6 +276,14 @@ check("releasing snaps to the nearest effort and commits it", () => {
   assert.deepEqual(plain(selectCalls), [{ provider: "deepseek", model: "reasoner", reasoningEffort: "low" }]);
 });
 
+check("the line follows the thumb down to the first rank", () => {
+  assert.equal(
+    lineNode().querySelector(".wk-effort-control__line-text").textContent,
+    "将来年老血衰，暗中有阎王老子管着。",
+  );
+  assert.equal(lineNode().querySelector(".wk-effort-control__line-source").textContent, "第一回");
+});
+
 await act(async () => {
   setRangeValue(range(), 200);
   range().dispatchEvent(new window.Event("input", { bubbles: true }));
@@ -269,6 +294,13 @@ check("a keyboard change also commits on key release", () => {
   assert.equal(props.presenter.getFrame(), 240);
   assert.equal(selectCalls.length, 2);
   assert.equal(selectCalls[1].reasoningEffort, "high");
+});
+
+check("the line returns to the last rank after the keyboard jump", () => {
+  assert.equal(
+    lineNode().querySelector(".wk-effort-control__line-text").textContent,
+    "趁早儿念个松箍儿咒，脱下来，打得粉碎。",
+  );
 });
 
 console.log("");
