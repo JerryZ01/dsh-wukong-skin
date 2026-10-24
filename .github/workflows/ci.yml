@@ -63,22 +63,6 @@ jobs:
       - name: Pack
         run: npm pack --dry-run
       - name: Every declared file must exist
-        shell: bash
-        run: |
-          set -euo pipefail
-          node -e '
-            const { readFileSync, existsSync } = require("node:fs");
-            const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-            const missing = [];
-            for (const entry of pkg.files ?? []) {
-              if (!existsSync(entry)) missing.push(entry);
-            }
-            for (const key of ["main", ...Object.values(pkg.exports ?? {})]) {
-              if (typeof key === "string" && !existsSync(key)) missing.push(key);
-            }
-            if (missing.length > 0) {
-              console.error("Missing files declared in package.json:\n  " + missing.join("\n  "));
-              process.exit(1);
-            }
-            console.log("all declared files exist");
-          '
+        run: node ./tools/check-pack.mjs
+      - name: The tarball must carry the portraits and the built client
+        run: node ./tools/check-tarball.mjs

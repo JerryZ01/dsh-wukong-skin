@@ -45,7 +45,7 @@
     "preview": "node ./tools/ladder-preview.mjs",
     "skin": "node ./tools/switch-skin.mjs",
     "test": "npm run check && npm run test:unit && npm run test:dom && npm run test:render",
-    "check": "node ./tools/check-forward.mjs",
+    "check": "node ./tools/check-forward.mjs && node ./tools/check-pack.mjs && node ./tools/check-tarball.mjs",
     "test:unit": "node ./tools/test-logic.mjs && node ./tools/test-assets.mjs",
     "test:dom": "node ./tools/test-dom.mjs",
     "test:render": "node ./tools/test-render.mjs",
