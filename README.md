@@ -13,20 +13,82 @@
 
 ## 安装
 
-```sh
-# 从 GitHub 装（推荐）
-dsh plugin --profile <profile> add 'github:JerryZ01/dsh-wukong-skin'
+### 方法一（推荐）：把提示词交给 DSH
+
+不需要懂命令行。**复制下面整段，粘贴给 DSH**，它自己会检查冲突、安装、验证：
+
+```text
+请把「滑动变佛」皮肤安装到 DSH 的 desktop profile。必须先检查冲突，确认可以继续后再安装。
+
+1. 安装前只读检查 desktop profile 的 package.json（dependencies 与 dsh.profile.bundles）、
+   该 profile 的 cordis.patch.yml 和 $DSH_HOME/cordis.patch.yml（如有）。
+2. 从当前启用的 bundles 中识别其他皮肤、主题或外观插件：排除 @deepseek-ai/dsh-base、
+   @deepseek-ai/dsh-web-app、dsh-skin-market 和本次目标
+   @daily-vibe/dsh-client-wukong-intensity-skin；读取候选 package.json 的名称、描述、
+   dsh.client/dsh.bundle 声明，必要时再读 README。
+3. 如果发现其他已启用的皮肤插件，列出它们并停在安装前，提醒我先停用；
+   未经我确认不得修改任何 profile 文件，也不得执行安装。
+4. 如果没有冲突，明确说「未检测到其他已启用的皮肤插件」，然后执行：
+
+   dsh plugin --profile desktop add 'github:JerryZ01/dsh-wukong-skin'
+
+5. 安装后读取 desktop profile 的 package.json，确认 dependencies 和 dsh.profile.bundles
+   中都有 @daily-vibe/dsh-client-wukong-intensity-skin；再检查目标 package.json 的
+   dsh.client/dsh.bundle 声明和 cordis.patch.yml 里的 wukong-intensity-skin 注册项。
+   任一缺失都要报告安装或注册失败。
+6. 告诉我如何重启 DSH。不要替我安装、停用或卸载其他皮肤。
 ```
 
-或从本地检出装（开发迭代用，构建产物已随仓库提交，无需 prepare）：
+第 3 步是重点：你 profile 里若已经开着「滑动变祖」或别的皮肤，它会**停下来问你**，而不是直接装上去把界面搞花。
+
+### 方法二：命令行安装
+
+```sh
+dsh plugin --profile desktop add 'github:JerryZ01/dsh-wukong-skin'
+```
+
+验证是否装好（应能在输出里看到 `@daily-vibe/dsh-client-wukong-intensity-skin`）：
+
+```sh
+dsh plugin --profile desktop list
+```
+
+> **`desktop` 是什么？** profile 名，即 `~/.dsh/profiles/` 下的目录名。官方 Desktop 用的是 `desktop`，`dsh web` 用的是 `web`。装错了不会报错，但皮肤不会出现在你正在用的那个界面里。不确定就跑 `ls ~/.dsh/profiles`（PowerShell 用 `dir ~/.dsh/profiles`）。
+
+> **提示 `dsh` 不是内部或外部命令？** 说明 DSH 的 CLI 不在 PATH 里。用完整路径调用，位置随安装方式不同：
+>
+> - 官方 Desktop：`"$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd"`
+> - 便携版/自定义目录：`"<安装目录>\resources\runtime\cli\bin\dsh.cmd"`
+>
+> 例如：`& "<安装目录>\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add 'github:JerryZ01/dsh-wukong-skin'`
+>
+> 实在找不到，就直接用方法一——把提示词交给 DSH，它会自己定位命令。
+
+### 方法三：克隆后从本地装（改代码用）
+
+构建产物 `lib/client.js` 已随仓库提交，克隆后**不需要** `npm install` 或 `npm run build`：
 
 ```sh
 git clone https://github.com/JerryZ01/dsh-wukong-skin.git
 cd dsh-wukong-skin
-dsh plugin --profile <profile> add .
+dsh plugin --profile desktop add .
 ```
 
-装完**完全退出并重新打开** DSH（含托盘图标）。`dsh plugin` 会自动把插件追加进 profile 的 `dsh.profile.bundles`，并加载它自带的 `cordis.patch.yml`。
+`add .` 装的是**指向克隆目录的 link 依赖**，所以之后改源码、跑 `npm run build`、重启 DSH 就生效，不用重装。适合想换人像或改配色的人。
+
+### 装完之后
+
+**完全退出 DSH 再重新打开**（含托盘图标，不是只关窗口）。`bundles` 只在启动时读一次，不重启等于没装。
+
+`dsh plugin` 会自动把插件追加进 profile 的 `dsh.profile.bundles`，并加载它自带的 `cordis.patch.yml`，**不需要手动改配置**。
+
+### 卸载
+
+```sh
+dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
+```
+
+`remove` 会自动把它从 `dsh.profile.bundles` 摘除；重启后设置入口完全消失。
 
 > **与其它皮肤互斥。** 这个皮肤会往 `body` 前插背景层、覆写一批 `--dsw-alias-*` 变量、调用 `theme.setTheme()`。和「滑动变祖」等同类皮肤同时启用会互相盖住。同一 profile 里只留一个，见下面的「与滑动变祖互切」。
 
@@ -109,9 +171,12 @@ python tools/make-placeholders.py
 
 ## 与「滑动变祖」互切
 
-两个皮肤都会往 `body` 前插背景层、都会覆写同一批 `--dsw-alias-*`、都会调 `theme.setTheme()`，同时启用会互相盖住。所以同一 profile 里只能留一个，但两边的依赖都保留着，切换只是改 `dsh.profile.bundles` 一个数组：
+两个皮肤都会往 `body` 前插背景层、都会覆写同一批 `--dsw-alias-*`、都会调 `theme.setTheme()`，同时启用会互相盖住。所以同一 profile 里只能留一个。
+
+切换不改依赖，只改 `dsh.profile.bundles` 这一个数组，所以两边可以同时装着、随时换。仓库里带了个脚本替你做这件事：
 
 ```sh
+# 如果你是用方法三（克隆）装的，在克隆目录里跑
 node tools/switch-skin.mjs            # 看当前是哪个
 node tools/switch-skin.mjs liang      # 切到滑动变祖
 node tools/switch-skin.mjs wukong     # 切到滑动变佛
@@ -120,7 +185,25 @@ node tools/switch-skin.mjs off        # 两个都关掉
 
 也可以 `npm run skin -- liang`。脚本只改 profile 的 `package.json`，**切完必须完全退出 DSH 再重新打开**——`bundles` 只在启动时读一次。
 
-profile 位置默认 `~/.dsh/profiles/<name>/package.json`；用 `DSH_HOME` 改根目录、`DSH_PROFILE` 改 profile 名（默认 `desktop`）。
+profile 位置默认 `~/.dsh/profiles/<名字>/package.json`；用 `DSH_HOME` 改根目录、`DSH_PROFILE` 改 profile 名（默认 `desktop`）。
+
+### 用方法一/二装的，怎么切
+
+那两个方法不会把仓库留在本地，脚本用不上。直接让 DSH 帮你改，把这段粘贴过去：
+
+```text
+请帮我在 desktop profile 里切换皮肤，只改这一处。
+
+1. 读取 ~/.dsh/profiles/desktop/package.json，找到 dsh.profile.bundles 数组。
+2. 我要启用的皮肤是：滑动变祖 @leon___/dsh-client-liang-intensity-skin
+   （换成滑动变佛就是 @daily-vibe/dsh-client-wukong-intensity-skin）
+3. 从 bundles 中移除另一个皮肤，把我要的这个加回去。其余元素和顺序一律不动。
+4. 确认这个包已在 dependencies 里；不在就先跑
+   dsh plugin --profile desktop add 'github:kingOfSoySauce/dsh-liang-skin'
+5. 改完把 bundles 数组打印给我看，并提醒我完全退出 DSH 再重新打开。
+```
+
+关键第 3 条：`bundles` 里其他元素**一个都不能动**，那里面是 `dsh-base`、`dsh-web-app` 等运行时必需的 bundle，删错了整个界面起不来。
 
 ## 构建
 
@@ -156,13 +239,32 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 
 它在临时目录里拼一个假 profile，验证 patch 层顺序与最终行序，不会碰你自己的 profile。
 
-## 卸载
+## 常见问题
 
-```sh
-dsh plugin --profile <profile> remove @daily-vibe/dsh-client-wukong-intensity-skin
-```
+**装完了，设置里没有「滑动变佛」。**
 
-`remove` 会自动把它从 `dsh.profile.bundles` 摘除；重启后设置入口完全消失。
+按顺序排查：
+
+1. **重启了吗？** 要完全退出 DSH（含托盘图标）。`bundles` 只在启动时读一次。
+2. **装对 profile 了吗？** `dsh plugin --profile desktop list` 里能看到包名，但你在用的界面可能是另一个 profile 起的。
+3. **`bundles` 里有吗？** 装进 `dependencies` 不等于启用。打开 `~/.dsh/profiles/desktop/package.json`，确认 `dsh.profile.bundles` 数组里有 `@daily-vibe/dsh-client-wukong-intensity-skin`。
+4. **是不是开着别的皮肤？** 见上面的「与滑动变祖互切」。
+
+**设置里有按钮，但滑块不出现。**
+
+滑块只在**支持推理、且至少两个档位**的模型上出现。换成不支持 reasoning 的模型时它不显示，这是正常的，不是装坏了。
+
+**界面配色变了，但深浅主题被切换了。**
+
+这是设计。档位跨过 24（斗战胜佛）时配色转黑金，皮肤会把宿主主题切到 dark；退回浅色档时切回 light。否则原生控件会在黑金背景上留下一堆浅色补丁。
+
+**头像边缘有硬边或黑边。**
+
+底色由 `paletteForFrame()` 算出来写进人像，和界面同源。如果你换了自定义图但没同步改配色，就会露边——见「换成你自己的图」。
+
+**能同时用「滑动变祖」和「滑动变佛」吗？**
+
+不能。两者都会插背景层、覆写同一批 `--dsw-alias-*`、调 `theme.setTheme()`，会互相盖住。用上面的互切方法，一次只留一个。
 
 ## 已知边界
 
