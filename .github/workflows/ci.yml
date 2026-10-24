@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Check the committed bundle is up to date
+        shell: bash
+        run: |
+          if ! git diff --quiet -- lib/client.js lib/client.js.map; then
+            echo "::error::lib/client.js is stale. Run 'npm run build' and commit the result."
+            git --no-pager diff --stat -- lib/client.js lib/client.js.map
+            exit 1
+          fi
+
+      - name: Unit tests (logic + asset routes)
+        run: npm run test:unit
+
+      - name: DOM tests
+        run: npm run test:dom
+
+      - name: Render tests
+        run: npm run test:render
+
+      - name: Portrait ladder is complete
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e '
+            const { readdirSync, statSync, readFileSync } = require("node:fs");
+            const src = readFileSync("src/client/index.jsx", "utf8");
+            const expected = [...src.matchAll(/file:\s*"([^"]+\.webp)"/g)].map((m) => m[1]);
+            const onDisk = readdirSync("assets/portrait").filter((f) => f.endsWith(".webp"));
+            const missing = expected.filter((f) => !onDisk.includes(f));
+            const extra = onDisk.filter((f) => !expected.includes(f));
+            if (missing.length || extra.length) {
+              if (missing.length) console.error("missing frames: " + missing.join(", "));
+              if (extra.length) console.error("unreferenced frames: " + extra.join(", "));
+              process.exit(1);
+            }
+            for (const f of onDisk) {
+              const { size } = statSync("assets/portrait/" + f);
+              if (size < 20_000) {
+                console.error(f + " looks truncated (" + size + " bytes)");
+                process.exit(1);
+              }
+            }
+            console.log(onDisk.length + " frames, all referenced and non-trivial");
+          '
+
+  package:
+    name: npm pack sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: Pack
+        run: npm pack --dry-run
+      - name: Every declared file must exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e '
+            const { readFileSync, existsSync } = require("node:fs");
+            const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+            const missing = [];
+            for (const entry of pkg.files ?? []) {
+              if (!existsSync(entry)) missing.push(entry);
+            }
+            for (const key of ["main", ...Object.values(pkg.exports ?? {})]) {
+              if (typeof key === "string" && !existsSync(key)) missing.push(key);
+            }
+            if (missing.length > 0) {
+              console.error("Missing files declared in package.json:\n  " + missing.join("\n  "));
+              process.exit(1);
+            }
+            console.log("all declared files exist");
+          '
