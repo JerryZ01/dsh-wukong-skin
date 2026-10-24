@@ -46,7 +46,7 @@ conflicts first and only install once you have confirmed it is safe.
    skin on my behalf.
 ```
 
-Step 3 matters: if *Slide to Ancestor* or another skin is already enabled in your profile, it **stops and asks** instead of painting over your UI.
+Step 3 matters: if another skin is already enabled in your profile, it **stops and asks** instead of painting over your UI.
 
 ### Option 2: command line
 
@@ -97,7 +97,7 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 
 `remove` also drops it from `dsh.profile.bundles`; after a restart the settings entry is gone.
 
-> **This skin is mutually exclusive with other skins.** It prepends a backdrop to `body`, overwrites a batch of `--dsw-alias-*` variables and calls `theme.setTheme()`. Running it alongside a sibling skin such as *Slide to Ancestor* makes the two paint over each other. Keep exactly one per profile — see "Switching between skins" below.
+> **This skin is mutually exclusive with other skins.** It prepends a backdrop to `body`, overwrites a batch of `--dsw-alias-*` variables and calls `theme.setTheme()`. Running it alongside a similar skin makes the two paint over each other. Keep exactly one per profile.
 
 ## Usage
 
@@ -179,43 +179,6 @@ To use your own art: prepare 31 images at 1024×1024 whose names match the files
 
 For regeneration, the frame table, and how the prompts keep the style from drifting, see [`assets/portrait/SOURCES.md`](assets/portrait/SOURCES.md).
 
-## Switching between skins
-
-Both this skin and *Slide to Ancestor* prepend a backdrop, overwrite the same `--dsw-alias-*` variables and call `theme.setTheme()`, so enabling both makes them paint over each other. Only one may live in a profile.
-
-Switching does not touch dependencies — it only edits the `dsh.profile.bundles` array, so both can stay installed and you can swap whenever. The repo ships a script for it:
-
-```sh
-# if you installed via Option 3 (clone), run this inside the clone
-node tools/switch-skin.mjs            # show which one is active
-node tools/switch-skin.mjs liang      # switch to Slide to Ancestor
-node tools/switch-skin.mjs wukong     # switch to this skin
-node tools/switch-skin.mjs off        # disable both
-```
-
-`npm run skin -- liang` works too. The script only edits the profile's `package.json`; **quit and reopen DSH afterwards**, because `bundles` is read once at startup.
-
-The profile defaults to `~/.dsh/profiles/<name>/package.json`. Set `DSH_HOME` to change the root and `DSH_PROFILE` to change the profile name (default `desktop`).
-
-### If you installed via Option 1 or 2
-
-Those paths leave no local clone, so the script is not available. Ask DSH to edit it instead — paste this:
-
-```text
-Please switch the skin in my desktop profile, changing only this one thing.
-
-1. Read ~/.dsh/profiles/desktop/package.json and find the dsh.profile.bundles array.
-2. I want to enable: Slide to Ancestor @leon___/dsh-client-liang-intensity-skin
-   (for Slide to Buddha it is @daily-vibe/dsh-client-wukong-intensity-skin)
-3. Remove the other skin from bundles and add mine back. Do not touch or reorder
-   any other element.
-4. Confirm the package is in dependencies; if not, run
-   dsh plugin --profile desktop add 'github:kingOfSoySauce/dsh-liang-skin' first.
-5. Print the resulting bundles array and remind me to quit and reopen DSH.
-```
-
-Step 3 is the important one: every other element in `bundles` — `dsh-base`, `dsh-web-app` and friends — is required at runtime, and removing one stops the UI from starting at all.
-
 ## Build
 
 ```sh
@@ -259,7 +222,7 @@ In order:
 1. **Did you restart?** Quit DSH fully (tray icon included). `bundles` is read once at startup.
 2. **Right profile?** `dsh plugin --profile desktop list` shows the package, but the UI you are looking at may be served by a different profile.
 3. **Is it in `bundles`?** Being in `dependencies` does not enable anything. Open `~/.dsh/profiles/desktop/package.json` and confirm `dsh.profile.bundles` contains `@daily-vibe/dsh-client-wukong-intensity-skin`.
-4. **Is another skin enabled?** See "Switching between skins" above.
+4. **Is another skin enabled?** Similar skins overwrite the backdrop and theme variables, so keep one per profile.
 
 **The settings entry is there, but no slider appears.**
 
@@ -273,9 +236,9 @@ By design. Past level 24 (Victorious Fighting Buddha) the palette turns black an
 
 The backdrop colour is computed by `paletteForFrame()` and baked into the art so the two always match. If you swapped in your own images without updating the palette, the seam shows — see "Use your own art".
 
-**Can I run Slide to Ancestor and Slide to Buddha together?**
+**Can I run two skins at once?**
 
-No. Both prepend a backdrop, overwrite the same `--dsw-alias-*` variables and call `theme.setTheme()`, so they paint over each other. Use the switching method above and keep one at a time.
+No. Both prepend a backdrop, overwrite the same `--dsw-alias-*` variables and call `theme.setTheme()`, so they paint over each other. Keep one at a time.
 
 ## Known limitations
 
@@ -283,7 +246,7 @@ No. Both prepend a backdrop, overwrite the same `--dsw-alias-*` variables and ca
 - Chained image-to-image drifts slightly, more so at later levels. Redraw any single frame with `npm run portraits -- --only <frame>`.
 - The skin changes the host's light/dark theme and intercepts clicks on the native appearance buttons. Both are intentional.
 - Native appearance choices are not remembered across reloads: returning to a native theme only lasts for the current client activation.
-- Running alongside *Slide to Ancestor* conflicts; see the switching method above.
+- Running alongside a similar skin conflicts; keep one per profile.
 - Portraits are AI-generated and included for demonstration —see Licensing below.
 
 ## Licensing
@@ -292,7 +255,7 @@ Code is released under the [MIT License](LICENSE).
 
 The 31 portraits under `assets/portrait/` are **stylised character illustrations** generated with `gpt-image-2.5`. They are not based on any real person's likeness or any third-party artwork, and ship under the same MIT terms. For commercial distribution, prefer regenerating them with `npm run portraits` so that upstream model output terms do not get tangled in.
 
-*Journey to the West* and Sun Wukong are public-domain material. The DeepSeek Harness mechanism was inspired by [`@leon___/dsh-client-liang-intensity-skin`](https://github.com/kingOfSoySauce/dsh-liang-skin); the code and the portraits here are independent implementations.
+*Journey to the West* and Sun Wukong are public-domain material. This project is an independent implementation.
 
 ## Copyright and assets
 

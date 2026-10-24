@@ -24,7 +24,7 @@
 - 宿主半部注册 31 条资源路由，支持 ETag / Range / HEAD / 304 / 416。
 - `tools/generate-portraits.mjs`：调 `gpt-image-2.5` 逐帧生图，六果位串成参考图链保证同一张脸，`ESCALATION` 表防装饰倒挂。
 - `tools/ladder-preview.mjs`：拼 README 顶部的 31 帧预览图。
-- `tools/switch-skin.mjs`：与「滑动变祖」互切，只改 `dsh.profile.bundles` 一个数组。
+- `tools/switch-skin.mjs`：开关本项目，只改 `dsh.profile.bundles` 一个数组，不碰其它元素。
 - 六套离线测试（logic / assets / voice / dom / render / compose），其中前五套 `npm install` 后即可跑。
 
 ### Known limitations
@@ -33,5 +33,5 @@
 - 链式图生图有轻微漂移，级别越远越明显；可用 `--only <帧名>` 单帧重画。
 - **台词音频来自 1986 版电视剧**，著作权归中央电视台，表演者权归李世宏、李扬。MIT 只覆盖代码，不覆盖这四段录音，详见 README「版权与素材」。
 - 四句撑六级，中间两级与前一级共用一句，因此跨那两级时不会换声。
-- 与本项目的姊妹皮肤「滑动变祖」不能同时启用，会互相覆盖背景层与 `--dsw-alias-*`。
+- 与做同样事情的其它皮肤不能同时启用，会互相覆盖背景层与 `--dsw-alias-*`；同一 profile 里只留一个。
 - 跨刷新不记忆原生外观选择：切回原生主题只对本次客户端激活有效。

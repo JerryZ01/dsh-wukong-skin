@@ -39,7 +39,7 @@
 6. 告诉我如何重启 DSH。不要替我安装、停用或卸载其他皮肤。
 ```
 
-第 3 步是重点：你 profile 里若已经开着「滑动变祖」或别的皮肤，它会**停下来问你**，而不是直接装上去把界面搞花。
+第 3 步是重点：你 profile 里若已经开着别的皮肤，它会**停下来问你**，而不是直接装上去把界面搞花。
 
 ### 方法二：命令行安装
 
@@ -90,7 +90,7 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 
 `remove` 会自动把它从 `dsh.profile.bundles` 摘除；重启后设置入口完全消失。
 
-> **与其它皮肤互斥。** 这个皮肤会往 `body` 前插背景层、覆写一批 `--dsw-alias-*` 变量、调用 `theme.setTheme()`。和「滑动变祖」等同类皮肤同时启用会互相盖住。同一 profile 里只留一个，见下面的「与滑动变祖互切」。
+> **与其它皮肤互斥。** 这个皮肤会往 `body` 前插背景层、覆写一批 `--dsw-alias-*` 变量、调用 `theme.setTheme()`。和同类皮肤同时启用会互相盖住，同一 profile 里只留一个。
 
 ## 用法
 
@@ -172,42 +172,6 @@ npm run voices
 
 想重新生成、看帧表、或者了解提示词怎么防风格漂移，见 [`assets/portrait/SOURCES.md`](assets/portrait/SOURCES.md)。
 
-## 与「滑动变祖」互切
-
-两个皮肤都会往 `body` 前插背景层、都会覆写同一批 `--dsw-alias-*`、都会调 `theme.setTheme()`，同时启用会互相盖住。所以同一 profile 里只能留一个。
-
-切换不改依赖，只改 `dsh.profile.bundles` 这一个数组，所以两边可以同时装着、随时换。仓库里带了个脚本替你做这件事：
-
-```sh
-# 如果你是用方法三（克隆）装的，在克隆目录里跑
-node tools/switch-skin.mjs            # 看当前是哪个
-node tools/switch-skin.mjs liang      # 切到滑动变祖
-node tools/switch-skin.mjs wukong     # 切到滑动变佛
-node tools/switch-skin.mjs off        # 两个都关掉
-```
-
-也可以 `npm run skin -- liang`。脚本只改 profile 的 `package.json`，**切完必须完全退出 DSH 再重新打开**——`bundles` 只在启动时读一次。
-
-profile 位置默认 `~/.dsh/profiles/<名字>/package.json`；用 `DSH_HOME` 改根目录、`DSH_PROFILE` 改 profile 名（默认 `desktop`）。
-
-### 用方法一/二装的，怎么切
-
-那两个方法不会把仓库留在本地，脚本用不上。直接让 DSH 帮你改，把这段粘贴过去：
-
-```text
-请帮我在 desktop profile 里切换皮肤，只改这一处。
-
-1. 读取 ~/.dsh/profiles/desktop/package.json，找到 dsh.profile.bundles 数组。
-2. 我要启用的皮肤是：滑动变祖 @leon___/dsh-client-liang-intensity-skin
-   （换成滑动变佛就是 @daily-vibe/dsh-client-wukong-intensity-skin）
-3. 从 bundles 中移除另一个皮肤，把我要的这个加回去。其余元素和顺序一律不动。
-4. 确认这个包已在 dependencies 里；不在就先跑
-   dsh plugin --profile desktop add 'github:kingOfSoySauce/dsh-liang-skin'
-5. 改完把 bundles 数组打印给我看，并提醒我完全退出 DSH 再重新打开。
-```
-
-关键第 3 条：`bundles` 里其他元素**一个都不能动**，那里面是 `dsh-base`、`dsh-web-app` 等运行时必需的 bundle，删错了整个界面起不来。
-
 ## 构建
 
 ```sh
@@ -253,7 +217,7 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 1. **重启了吗？** 要完全退出 DSH（含托盘图标）。`bundles` 只在启动时读一次。
 2. **装对 profile 了吗？** `dsh plugin --profile desktop list` 里能看到包名，但你在用的界面可能是另一个 profile 起的。
 3. **`bundles` 里有吗？** 装进 `dependencies` 不等于启用。打开 `~/.dsh/profiles/desktop/package.json`，确认 `dsh.profile.bundles` 数组里有 `@daily-vibe/dsh-client-wukong-intensity-skin`。
-4. **是不是开着别的皮肤？** 见上面的「与滑动变祖互切」。
+4. **是不是开着别的皮肤？** 同类皮肤会互相覆盖背景层与主题变量，同一 profile 里只留一个。
 
 **设置里有按钮，但滑块不出现。**
 
@@ -267,9 +231,9 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 
 底色由 `paletteForFrame()` 算出来写进人像，和界面同源。如果你换了自定义图但没同步改配色，就会露边——见「换成你自己的图」。
 
-**能同时用「滑动变祖」和「滑动变佛」吗？**
+**能同时开两个皮肤吗？**
 
-不能。两者都会插背景层、覆写同一批 `--dsw-alias-*`、调 `theme.setTheme()`，会互相盖住。用上面的互切方法，一次只留一个。
+不能。两者都会插背景层、覆写同一批 `--dsw-alias-*`、调 `theme.setTheme()`，会互相盖住。一次只留一个。
 
 ## 已知边界
 
@@ -277,7 +241,7 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 - 链式图生图有轻微漂移，级别越远越明显。某帧不满意就 `npm run portraits -- --only <帧名>` 单独重画。
 - 皮肤会改宿主的深浅主题（见上文），也会劫持原生外观按钮的点击。两者都是设计。
 - 跨刷新不记忆原生外观选择：切回原生主题只对本次客户端激活有效，刷新后默认重新启用皮肤。
-- 与「滑动变祖」同装会冲突，见上文互切方法。
+- 与同类皮肤同装会冲突，同一 profile 里只留一个。
 - 人像为 AI 生成，仅作演示用途，详见下方「许可」。
 
 ## 许可
@@ -286,7 +250,7 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 
 `assets/portrait/` 下的 31 张人像是用 `gpt-image-2.5` 生成的**风格化角色插画**，不基于任何真人肖像或第三方作品，随仓库一并以 MIT 提供。如果你要用于商业发行，建议先用 `npm run portraits` 换成自己生成的图，避免和上游模型的输出条款产生牵连。
 
-「孙悟空」「西游记」属公有领域题材。本项目的 DeepSeek Harness 机制灵感来自 [`@leon___/dsh-client-liang-intensity-skin`](https://github.com/kingOfSoySauce/dsh-liang-skin)（滑动变祖），但代码与人像均为独立实现。
+「孙悟空」「西游记」属公有领域题材，本项目为独立实现。
 
 ## 版权与素材
 

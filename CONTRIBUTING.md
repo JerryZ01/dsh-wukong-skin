@@ -79,9 +79,9 @@ npm run portraits -- --from 12 --to 17 --force
 
 ## 冲突须知
 
-「滑动变祖」（`@leon___/dsh-client-liang-intensity-skin`）和本项目**不能同时启用**：两者都会往 `body` 前插背景层、都会覆写同一批 `--dsw-alias-*`、都会调 `theme.setTheme()`。同时开着会互相盖住。
+本项目会往 `body` 前插背景层、覆写同一批 `--dsw-alias-*`、调用 `theme.setTheme()`。任何做同样事情的皮肤和它**不能同时启用**——同时开着会互相盖住。同一 profile 里只留一个。
 
-如果你在 PR 里加了新的 skin 互斥处理，请同时更新 `tools/switch-skin.mjs` 的 `SKINS` 表和 README 的「与滑动变祖互切」一节。
+`tools/switch-skin.mjs` 只负责开关本项目自己（`on` / `off`），它不感知别的皮肤，也不需要感知：把别的皮肤装进来是使用者自己的事。
 
 ## 提交信息
 

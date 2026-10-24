@@ -1,4 +1,5 @@
-const LIANG_APPEARANCE_ROW = '[class*="_cubeRow"]';
+// 宿主原生外观行的类名带 CSS Modules 哈希，只能按后缀匹配。
+const APPEARANCE_ROW = '[class*="_cubeRow"]';
 const WUKONG_APPEARANCE_BUTTON = "wk-appearance-choice";
 
 function hasClassSuffix(node, suffix) {
@@ -6,7 +7,7 @@ function hasClassSuffix(node, suffix) {
 }
 
 function findAppearanceRow() {
-  for (const row of document.querySelectorAll(LIANG_APPEARANCE_ROW)) {
+  for (const row of document.querySelectorAll(APPEARANCE_ROW)) {
     if (!hasClassSuffix(row, "_cubeRow")) continue;
     // All three native appearance choices are direct button children. Validate
     // the structure as well as the suffix so unrelated cube rows stay alone.
