@@ -134,7 +134,7 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 - 关掉开关立刻静音，不等那句念完。
 - 默认**关闭**：进页面不会突然开口。
 - 不联网、不调用任何语音 API、不把文字发给任何服务。
-- **仓库里不带音频**。素材由使用者自己准备，放进去之后跑 `npm run voices` 导入。
+- **仓库自带这四段音频**（`assets/voice/line-0..3.wav`，共 318 KB），开箱即有声。
 
 **为什么不走浏览器的 `speechSynthesis`**：试过了，在 Electron 里它会被自动播放策略静默拒绝（`error: not-allowed`），而且首次同步调用 `getVoices()` 返回空数组，机器之间语音差异也大。预生成的文件是**可以当场验证的**——用真实 Chromium 解码播放，能确认 `currentTime` 真的在走。
 
@@ -287,3 +287,28 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 `assets/portrait/` 下的 31 张人像是用 `gpt-image-2.5` 生成的**风格化角色插画**，不基于任何真人肖像或第三方作品，随仓库一并以 MIT 提供。如果你要用于商业发行，建议先用 `npm run portraits` 换成自己生成的图，避免和上游模型的输出条款产生牵连。
 
 「孙悟空」「西游记」属公有领域题材。本项目的 DeepSeek Harness 机制灵感来自 [`@leon___/dsh-client-liang-intensity-skin`](https://github.com/kingOfSoySauce/dsh-liang-skin)（滑动变祖），但代码与人像均为独立实现。
+
+## 版权与素材
+
+**上面的 MIT 只覆盖代码，不覆盖 `assets/voice/` 里的四段录音。**
+
+| 项 | 情况 |
+| --- | --- |
+| 录音来源 | 1986 版中央电视台《西游记》电视剧 |
+| 著作权 | 中央电视台 |
+| 表演者权 | 李世宏（前五集）、李扬（其余） |
+| 状态 | 未经授权，随仓库提供 |
+
+这四段是直接从剧里截出来的对白，不是翻录、不是合成。把它们放进 MIT 仓库是一个**有意的例外**：许可证声明覆盖的是我写的代码，而不是别人的表演。
+
+如果你要商用、再分发，或者放到公开可访问的服务上，**请自行取得授权，或换成你有权使用的素材**。换素材的流程：
+
+```sh
+# 1. 把音频放进 .cache/raw-voice/，命名 line-0 ~ line-3
+# 2. 导入（会转成 16kHz 单声道并校验非静音）
+npm run voices
+# 3. 验证能真的出声
+node tools/probe-voice.mjs
+```
+
+删掉这四段不影响代码运行——朗读会静默，界面其余部分照常。

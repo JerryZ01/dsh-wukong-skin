@@ -141,7 +141,7 @@ Turn on **Speak the line aloud** in settings and the skin reads the line when yo
 - Turning the switch off silences immediately rather than letting the clip finish.
 - Off by **default** — the page never starts talking on its own.
 - No network, no speech API, no text ever leaves the machine.
-- **No audio ships with the repository.** You supply the clips, drop them in `.cache/raw-voice/`, and run `npm run voices`.
+- **The repository ships all four clips** (`assets/voice/line-0..3.wav`, 318 KB total), so it works out of the box.
 
 **Why not `speechSynthesis`**: it was tried. In Electron the autoplay policy silently rejects it (`error: not-allowed`), the first synchronous `getVoices()` call returns an empty array, and voices differ wildly between machines. Pre-recorded files can be **verified on the spot** — decoded and played back in a real Chromium, with `currentTime` confirmed to advance.
 
@@ -293,3 +293,28 @@ Code is released under the [MIT License](LICENSE).
 The 31 portraits under `assets/portrait/` are **stylised character illustrations** generated with `gpt-image-2.5`. They are not based on any real person's likeness or any third-party artwork, and ship under the same MIT terms. For commercial distribution, prefer regenerating them with `npm run portraits` so that upstream model output terms do not get tangled in.
 
 *Journey to the West* and Sun Wukong are public-domain material. The DeepSeek Harness mechanism was inspired by [`@leon___/dsh-client-liang-intensity-skin`](https://github.com/kingOfSoySauce/dsh-liang-skin); the code and the portraits here are independent implementations.
+
+## Copyright and assets
+
+**The MIT licence above covers the code. It does not cover the four recordings in `assets/voice/`.**
+
+| | |
+| --- | --- |
+| Source | The 1986 CCTV television adaptation of *Journey to the West* |
+| Copyright | China Central Television |
+| Performers' rights | Li Shihong (first five episodes), Li Yang (the rest) |
+| Status | Unlicensed, shipped with the repository |
+
+These four clips are dialogue lifted straight from the show — not re-recorded, not synthesised. Including them in an MIT repository is a **deliberate exception**: the licence covers the code I wrote, not somebody else's performance.
+
+If you intend to use this commercially, redistribute it, or host it publicly, **obtain permission or replace the clips with material you have the rights to**. To swap them:
+
+```sh
+# 1. put audio in .cache/raw-voice/, named line-0 ~ line-3
+# 2. import (converts to 16 kHz mono, verifies it is not silent)
+npm run voices
+# 3. verify it actually makes sound
+node tools/probe-voice.mjs
+```
+
+Removing the four files does not break anything — speech simply goes silent while the rest of the UI keeps working.
