@@ -112,20 +112,22 @@ A track appears at the right edge of the composer. It reads **the current model'
 
 ### The line
 
-A line sits above the track and **changes once per rank**. Four lines cover six ranks:
+A line sits above the track and **changes once per rank**. Four lines cover six ranks, ordered by **intensity, not chronology**:
 
-| Rank | Line | Mood |
-| --- | --- | --- |
-| Stone Monkey | 俺老孙来也！ | announcing himself |
-| Handsome Monkey King | 吃俺老孙一棒！ | about to strike |
-| Great Sage Equal to Heaven | 吃俺老孙一棒！ | about to strike |
-| Sun the Pilgrim | 妖怪，哪里跑！ | giving chase |
-| Victorious Fighting Buddha | 妖怪，哪里跑！ | giving chase |
-| Victorious Fighting Ancestor | 俺上天看看路径，日后好带你们上去同住。 | after taking the throne |
+| Rank | Line | Mood | Length |
+| --- | --- | --- | --- |
+| Stone Monkey | 俺老孙来也！ | announcing himself | 1.7s |
+| Handsome Monkey King | 俺上天看看路径，日后好带你们上去同住。 | planning, after taking the throne | 3.8s |
+| Great Sage Equal to Heaven | 俺上天看看路径，日后好带你们上去同住。 | planning, after taking the throne | 3.8s |
+| Sun the Pilgrim | 妖怪，哪里跑！ | giving chase | 2.6s |
+| Victorious Fighting Buddha | 吃俺老孙一棒！ | about to strike | 2.2s |
+| Victorious Fighting Ancestor | 吃俺老孙一棒！ | about to strike | 2.2s |
 
-The middle two ranks share a line with the one before — four short lines are far easier to source real audio for than six.
+The middle two ranks share a line with the one before.
 
-> Earlier versions quoted the 100-chapter novel verbatim. Those lines were accurate on paper, but no actor ever recorded them, so they could not be matched to real audio. The set is now chosen by what actually exists on sound archives.
+The order runs **announce → plan → chase → strike**. Dragging up should sound hotter, not calmer.
+
+> The long line used to sit at the top rank. But it is a measured remark made after taking the throne — 3.8 seconds, flat delivery — while 「一棒」 is a 2.2-second bark. So `high` sounded *weaker* than `medium`: intensity went up while aggression went down. The long line now sits in the first half and the short barks at the top.
 
 The line follows the thumb immediately — it does not wait for the commit — and fades to 35% while you drag so it does not compete with the step tooltip.
 

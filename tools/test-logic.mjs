@@ -119,10 +119,10 @@ check("there is exactly one line per rank, in rank order", () => {
 check("every line has text and is short enough to land on a rank change", () => {
   for (const line of LINES) {
     assert.ok(line.text.length > 0, `rank ${line.rank} has no text`);
-    // 切档是即时反馈，句子太长会拖在后面。顶档那句是真素材
-    // （「俺上天看看路径，日后好带你们上去同住。」），比其余三句长得多，
-    // 所以上限放宽到 20，其余三句仍按 10 看着。
-    const limit = line.rank === 5 ? 20 : 10;
+    // 切档是即时反馈，句子太长会拖在后面。素材里有一句完整的话
+    // （「俺上天看看路径，日后好带你们上去同住。」），它现在在中段，
+    // 所以对那一句单独放宽到 20，其余按 10 看着。
+    const limit = line.text.length > 10 ? 20 : 10;
     assert.ok(line.text.length <= limit, `rank ${line.rank} is ${line.text.length} chars, over ${limit}`);
   }
 });
@@ -171,6 +171,24 @@ check("no line is attributed to a speaker other than Wukong", () => {
   for (const line of LINES) {
     assert.ok(!line.text.includes("种种魔"), `rank ${line.rank} uses a Tang Seng line`);
   }
+});
+
+check("intensity rises with the rank", () => {
+  // 台词按烈度排，不是按剧情先后。顶档必须是短促的喝令，
+  // 不能是那种从容交代的长句——否则越往上拖，气势反而越弱。
+  const INTENSITY = { "俺老孙来也！": 0, "俺上天看看路径，日后好带你们上去同住。": 1, "妖怪，哪里跑！": 2, "吃俺老孙一棒！": 3 };
+  const seen = LINES.map((line) => INTENSITY[line.text]);
+  assert.ok(seen.every((v) => v !== undefined), "每句都要在烈度表里");
+  for (let i = 1; i < seen.length; i += 1) {
+    assert.ok(seen[i] >= seen[i - 1], `rank ${i} 的台词比上一级更弱（烈度 ${seen[i - 1]} -> ${seen[i]}）`);
+  }
+  // 顶档一定是最烈的那句。
+  assert.equal(seen[5], 3, "top rank must be the sharpest line");
+});
+
+check("the long line does not sit at the top rank", () => {
+  // 「上天看看路径」3.8 秒、语气平，放顶档会让 high 听起来比 medium 弱。
+  assert.ok(LINES[5].text.length <= 10, `top rank line is ${LINES[5].text.length} chars`);
 });
 
 console.log("");

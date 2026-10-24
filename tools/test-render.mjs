@@ -291,9 +291,9 @@ const playedFiles = () => spoken.filter((a) => a.__playCount > 0).map((a) => a.s
 check("a line is always on screen", () => {
   const line = lineNode();
   assert.ok(line !== null, "no line rendered");
-  // 顶档是斗战胜祖，念第四句。
-  assert.equal(line.querySelector(".wk-effort-control__line-text").textContent, "俺上天看看路径，日后好带你们上去同住。");
-  assert.equal(line.querySelector(".wk-effort-control__line-source").textContent, "称王后");
+  // 顶档是斗战胜祖，念最烈的那句。
+  assert.equal(line.querySelector(".wk-effort-control__line-text").textContent, "吃俺老孙一棒！");
+  assert.equal(line.querySelector(".wk-effort-control__line-source").textContent, "动手前");
 });
 
 check("the line is polite to screen readers", () => {
@@ -371,7 +371,7 @@ check("a keyboard change also commits on key release", () => {
 check("the line returns to the last rank after the keyboard jump", () => {
   assert.equal(
     lineNode().querySelector(".wk-effort-control__line-text").textContent,
-    "俺上天看看路径，日后好带你们上去同住。",
+    "吃俺老孙一棒！",
   );
 });
 
