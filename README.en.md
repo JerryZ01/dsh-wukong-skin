@@ -127,53 +127,11 @@ Past level 24 the palette turns black and gold, and the skin sets the host theme
 
 ## Portraits
 
-The 31 WebPs under `assets/portrait/` are **generated frame by frame**: 1024脳1024, about 9 MB in total. There is no recoloured source art and no geometric placeholder in the repository.
+31 half-body illustrations (1024×1024, WebP, about 9 MB), generated frame by frame. No recoloured source art and no placeholders. The six ranks form one reference chain — each rank first gets a defining frame, and the next rank uses the previous rank's finished frame as its image-to-image reference — so dragging from end to end shows one face growing up, not 31 different monkeys. Decoration ceilings rise rank by rank and are never allowed to invert, or later levels would look plainer than earlier ones.
 
-They come from an OpenAI-compatible gateway (`POST /v1/images/generations` and `/v1/images/edits`) using `gpt-image-2.5-sunburst`. What ships in the repo is exactly that output.
+To use your own art: prepare 31 images at 1024×1024 whose names match the files in `assets/portrait/`, then overwrite them in place. No code change, no rebuild.
 
-### Stopping 31 independent generations from producing 31 different monkeys
-
-This is the trap every slider skin falls into: a slider promises "further right is stronger", but 31 independent generations only give you 31 different styles. Three rules hold it together:
-
-1. **The six ranks form a chain.** Each rank first gets a defining frame (`stage-00/06/12/18/24/30`), and the next rank uses the previous rank's *finished frame* as its image-to-image reference. Stone Monkey → Handsome Monkey King → Great Sage → Pilgrim → Buddha → Ancestor: the same face growing up across six ranks.
-2. **Within a rank, only intensity moves.** The other five frames reference their own rank's defining frame and change pattern density, gold-leaf ratio and halo depth —never the person.
-3. **Decoration ceilings rise monotonically; inversions are forbidden.** The `ESCALATION` table gives each rank three mutually exclusive caps: the Stone Monkey tier explicitly says "no gold, no flames, no cloud patterns", and flames are not allowed to appear until the Great Sage.
-
-Rule 3 exists because we got it wrong first. An early version put "gold leaf, flames, lotus petals" into every rank, which made the level-4 stone monkey more ornate than the level-6 Monkey King —dragging right made the screen *plainer*. This is the easiest thing to break when editing prompts; always re-run `npm run preview` and compare cell by cell.
-
-Every prompt also carries a verbatim style block (Chinese national-trend ukiyo-e, flat solid colour, heavy black outlines, no photorealism), and the background colour is computed by `paletteForFrame()` in `src/client/logic.js` and written into the prompt —so the portrait's backdrop and the UI can never drift apart.
-
-### Regenerating
-
-```powershell
-$env:IMAGE_KEY = 'sk-...'    # a key from an image-capable group
-npm install
-npm run portraits                        # all 31 frames, roughly 25 minutes
-npm run preview                          # rebuild the preview at the top of the README
-```
-
-```powershell
-npm run portraits -- --only stage-12     # one frame
-npm run portraits -- --from 12 --to 17   # one rank
-npm run portraits -- --fast              # the faster flare model
-npm run portraits -- --force             # ignore the cache in .cache/gen
-```
-
-Intermediate PNGs are cached in `.cache/gen/`, so a re-run skips finished frames. **Redrawing a defining frame (`stage-*`) changes the reference for its five siblings**, so redraw the whole rank together.
-
-The frame table lives in [`assets/portrait/SOURCES.md`](assets/portrait/SOURCES.md).
-
-### Use your own art
-
-1. Prepare 31 images at 1024脳1024 whose names match the existing files in `assets/portrait/`.
-2. Overwrite them in place. No code change, no rebuild.
-3. To change the frame count or spacing, see "Adding steps / changing the frame count" in CONTRIBUTING.md.
-
-If you have no art source at all, a purely geometric placeholder generator (staff + circlet + rank seal) is included:
-
-```sh
-python tools/make-placeholders.py
-```
+For regeneration, the frame table, and how the prompts keep the style from drifting, see [`assets/portrait/SOURCES.md`](assets/portrait/SOURCES.md).
 
 ## Switching between skins
 
@@ -275,11 +233,11 @@ No. Both prepend a backdrop, overwrite the same `--dsw-alias-*` variables and ca
 
 ## Known limitations
 
-- **The five frames inside a rank show one character at increasing intensity, not five different poses.** Silhouette changes happen between ranks (crown, armour, halo); inside a rank it is pattern density and gold ratio. That is the price of monotonicity —dragging through a rank shows density change rather than motion.
-- All six ranks share one reference chain, so the face stays the same monkey, but chained image-to-image drifts slightly and more so at later levels. Redraw any single frame with `npm run portraits -- --only <frame>`.
+- The five frames inside a rank show one character at increasing intensity, not five different poses: dragging through a rank shows pattern density changing, not motion. That is the price of monotonicity.
+- Chained image-to-image drifts slightly, more so at later levels. Redraw any single frame with `npm run portraits -- --only <frame>`.
 - The skin changes the host's light/dark theme and intercepts clicks on the native appearance buttons. Both are intentional.
 - Native appearance choices are not remembered across reloads: returning to a native theme only lasts for the current client activation.
-- Running alongside *Slide to Ancestor* conflicts; use `tools/switch-skin.mjs`.
+- Running alongside *Slide to Ancestor* conflicts; see the switching method above.
 - Portraits are AI-generated and included for demonstration —see Licensing below.
 
 ## Licensing
