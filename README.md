@@ -8,7 +8,8 @@
 
 - **六级果位**：石猴 → 美猴王 → 齐天大圣 → 孙行者 → 斗战胜佛 → 斗战胜祖
 - **31 帧人像**：0–30 每一级都有对应画面，15 与 27 是跨果位的换装过渡帧
-- **自适应配色**：石白 → 赭石 → 蟠桃金 → 丹炉火 → 黑金，颜色从同一张表插值出来
+- **自适应配色**：石白 → 赭石 → 蟠桃金 → 丹炉火 → 黑金，六个配色停靠点随果位插值，界面变量与人像底色同源
+- **四句原声**：跨果位时报一句台词，可选念出来（默认关闭）
 - **不改宿主**：外观开关并入原生「设置 → 通用设置 → 外观」，点原生主题按钮即退出皮肤
 
 ## 安装
@@ -114,9 +115,9 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 | 齐天大圣 | 吃俺老孙一棒！ | 动手前 |
 | 孙行者 | 妖怪，哪里跑！ | 追打 |
 | 斗战胜佛 | 妖怪，哪里跑！ | 追打 |
-| 斗战胜祖 | 看俺老孙的！ | 显本事 |
+| 斗战胜祖 | 俺上天看看路径，日后好带你们上去同住。 | 称王后 |
 
-中间两级各与前一级共用一句——四句比六句好搜，而且短，切档时来得快。
+中间两级各与前一级共用一句——四句比六句好搜，而且短，切档时来得快。顶档那句最长（3.8 秒），是四段里唯一的完整句子，其余三句都是五六个字的短喝。
 
 > 早先这里放的是原著原文（「将来年老血衰，暗中有阎王老子管着」这类），逐字核对过百回本，但演员未必念过，音效平台上搜不到，等于配不上声音。现在以「平台上真有原声」为准。
 
@@ -134,7 +135,7 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 - 关掉开关立刻静音，不等那句念完。
 - 默认**关闭**：进页面不会突然开口。
 - 不联网、不调用任何语音 API、不把文字发给任何服务。
-- **仓库自带这四段音频**（`assets/voice/line-0..3.wav`，共 318 KB），开箱即有声。
+- **仓库自带这四段音频**（`assets/voice/line-0..3.wav`，共 321 KB），开箱即有声。
 
 **为什么不走浏览器的 `speechSynthesis`**：试过了，在 Electron 里它会被自动播放策略静默拒绝（`error: not-allowed`），而且首次同步调用 `getVoices()` 返回空数组，机器之间语音差异也大。预生成的文件是**可以当场验证的**——用真实 Chromium 解码播放，能确认 `currentTime` 真的在走。
 
@@ -144,21 +145,34 @@ dsh plugin --profile desktop remove @daily-vibe/dsh-client-wukong-intensity-skin
 npm run voices
 ```
 
-脚本会把素材转成 16kHz 单声道、校验有声，再写进 `assets/voice/`。素材放在 `.cache/raw-voice/`，文件名带 0–3 的句号即可（`line-0.mp3` 或直接 `0.mp3`）。
+脚本会把素材转成 16kHz 单声道、校验有声，再写进 `assets/voice/`。素材放在 `.cache/raw-voice/`（已在 `.gitignore` 里）。
+
+文件名两种写法都认：
+
+- **显式编号**（最可靠）：`line-0.mp3` ~ `line-3.mp3`，直接指定是第几句。
+- **按内容匹配**：认不出编号时退回关键词——`来也` / `一棒` / `哪里跑` / `上天看看`。音效站导出的文件名通常带台词原文，不编号也能对上。
 
 改台词要同时改三处：`src/client/logic.js` 的 `LINES`、`tools/import-voice.mjs` 顶部的 `LINES`、以及 `tools/test-logic.mjs` 里钉死的那四句。
 
 ### 外观开关
 
-入口在 **设置 → 通用设置 → 外观**：
+入口在 **设置 → 通用设置 → 外观**，紧挨着原生主题按钮：
 
 | 控件 | 行为 |
 | --- | --- |
 | `滑动变佛` | 显示滑块，并启用人物、背景和自适应配色 |
 | 原生 `浅色` / `深色` / `跟随系统` | 移除背景层、皮肤变量和滑块，切回对应原生外观 |
 | `滑动变佛绑定思考等级` | 关闭后滑块只切换外观，不改模型的推理等级 |
+| `滑动变佛念出台词` | 跨果位时朗读原声片段；默认关闭 |
 
-绑定开关存在浏览器 localStorage（`dsh-wukong-intensity-skin.bind-effort`）。
+两个开关只在皮肤启用时出现，状态存浏览器 localStorage：
+
+| 开关 | 键 |
+| --- | --- |
+| 绑定思考等级 | `dsh-wukong-intensity-skin.bind-effort` |
+| 念出台词 | `dsh-wukong-intensity-skin.speak` |
+
+「绑定思考等级」默认开启，「念出台词」默认关闭——进页面不会突然开口。
 
 ### 深浅主题
 
@@ -181,24 +195,44 @@ npm run build
 
 `npm run build` 用 esbuild 把 `src/client/index.jsx` 打成 `lib/client.js`（CJS + `window.__ModuleLoader__.load` 外壳），CSS 以文本内联。**提交时要把 `lib/client.js` 一起提交**，否则装上去没有浏览器半部；CI 会检查产物是否与源码同步。
 
+### 全部脚本
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run build` | 打包客户端半部到 `lib/client.js` |
+| `npm run portraits` | 逐帧重新生成人像（需 `IMAGE_KEY`），`-- --only <帧名>` 单帧重画 |
+| `npm run voices` | 把 `.cache/raw-voice/` 的素材导入 `assets/voice/` |
+| `npm run preview` | 重拼 README 顶部的 31 帧预览图 |
+| `npm run skin` | 开关本项目：`-- on` / `-- off`，只改 profile 的 bundles 数组 |
+| `npm test` | 五套离线测试 |
+| `npm run test:compose` | 用真实运行时验证 profile 组合，需 DSH 本体 |
+
+`npm run skin` 改完同样要**完全退出 DSH 再打开**。它只增删 `@daily-vibe/dsh-client-wukong-intensity-skin` 这一个元素，profile 里其他 bundle 一律不碰。
+
 ## 测试
 
-六套离线测试，都不需要启动 DSH：
+`npm test` 一次跑完五套，都不需要启动 DSH：
 
 ```sh
-npm test                # 一次跑完下面五项
+npm test                # 等价于下面四条
 
-npm run check           # 帧表一致性：客户端 PORTRAIT_ANCHORS ↔ 宿主 FRAMES ↔ 磁盘文件
-npm run test:unit       # 档位/果位/配色纯函数；资源路由、Range/ETag/304/416；朗读播放器
+npm run check           # 帧表一致性：客户端 PORTRAIT_ANCHORS ↔ 宿主 FRAMES ↔ 磁盘文件；打包清单；tarball 内容
+npm run test:unit       # logic + assets + voice：档位/果位/配色纯函数、资源路由与 Range/ETag/304/416、朗读播放器
 npm run test:dom        # 浏览器半部：样式注入、背景层、外观按钮、整体卸载
-npm run test:render     # React 半部：滑块拖动预览、松手提交、绑定开关、跨档播哪一段
+npm run test:render     # React 半部：拖动预览、松手提交、两个开关、跨档播哪一段、hook 顺序
 ```
 
-`npm install` 之后就全都能跑，`jsdom` / `react` / `react-dom` 都是 devDependencies。若你的机器把依赖放在检出目录之外，可以用 `JSDOM_PATH` / `REACT_PATH` 覆盖。
+`npm install` 之后就全都能跑，`jsdom` / `react` / `react-dom` / `esbuild` / `sharp` 都是 devDependencies。若你的机器把依赖放在检出目录之外，可以用 `JSDOM_PATH` / `REACT_PATH` 覆盖。
 
-另外还有一个不挂在 `npm test` 里的探针：`node tools/probe-voice.mjs` 用真实 Chromium 验证四段音频能否解码、能否播放、`currentTime` 是否真的在走。换素材后跑一次，比人工试听可靠。
+两样东西**不在** `npm test` 里，需要单独跑：
 
-第五套 `test:compose` 跑的是**真实运行时**的 `loadProfileDirectory()`，需要 DSH 本体：
+**探针** —— 用真实 Chromium 验证四段音频能否解码、能否播放、`currentTime` 是否真的在走。换素材后跑一次，比人工试听可靠：
+
+```sh
+node tools/probe-voice.mjs
+```
+
+**组合测试** —— `test:compose` 跑的是**真实运行时**的 `loadProfileDirectory()`，需要 DSH 本体：
 
 ```powershell
 $env:ELECTRON_RUN_AS_NODE = '1'
@@ -229,7 +263,7 @@ $env:DSH_RUNTIME_MODULES  = 'file:///<安装目录>/resources/app.asar/dsh/node_
 
 **头像边缘有硬边或黑边。**
 
-底色由 `paletteForFrame()` 算出来写进人像，和界面同源。如果你换了自定义图但没同步改配色，就会露边——见「换成你自己的图」。
+底色由 `paletteForFrame()` 算出来写进人像，和界面同源。如果你换了自定义图但没同步改配色，就会露边——见上面「人像」一节。
 
 **能同时开两个皮肤吗？**
 

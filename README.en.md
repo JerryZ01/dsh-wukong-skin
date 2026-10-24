@@ -141,7 +141,7 @@ Turn on **Speak the line aloud** in settings and the skin reads the line when yo
 - Turning the switch off silences immediately rather than letting the clip finish.
 - Off by **default** — the page never starts talking on its own.
 - No network, no speech API, no text ever leaves the machine.
-- **The repository ships all four clips** (`assets/voice/line-0..3.wav`, 318 KB total), so it works out of the box.
+- **The repository ships all four clips** (`assets/voice/line-0..3.wav`, 321 KB total), so it works out of the box.
 
 **Why not `speechSynthesis`**: it was tried. In Electron the autoplay policy silently rejects it (`error: not-allowed`), the first synchronous `getVoices()` call returns an empty array, and voices differ wildly between machines. Pre-recorded files can be **verified on the spot** — decoded and played back in a real Chromium, with `currentTime` confirmed to advance.
 
@@ -157,15 +157,23 @@ Changing a line means editing three places: `LINES` in `src/client/logic.js`, th
 
 ### The appearance row
 
-Everything lives in **Settings → General → Appearance**:
+Everything lives in **Settings → General → Appearance**, right next to the native theme buttons:
 
 | Control | Effect |
 | --- | --- |
-| `婊戝姩鍙樹經` (Wukong) | Shows the slider and turns on the portrait, backdrop and adaptive palette |
+| `滑动变佛` (Wukong) | Shows the slider and turns on the portrait, backdrop and adaptive palette |
 | Native `Light` / `Dark` / `Follow system` | Removes the backdrop, the skin variables and the slider; returns to that native appearance |
 | `滑动变佛绑定思考等级` (bind effort) | When off, the slider only changes the look and leaves the model's reasoning effort alone |
+| `滑动变佛念出台词` (speak the line) | Reads a clip when you cross a rank; off by default |
 
-The bind flag is stored in browser localStorage (`dsh-wukong-intensity-skin.bind-effort`).
+Both switches only appear while the skin is enabled, and both persist in browser localStorage:
+
+| Switch | Key |
+| --- | --- |
+| Bind effort | `dsh-wukong-intensity-skin.bind-effort` |
+| Speak the line | `dsh-wukong-intensity-skin.speak` |
+
+Binding is on by default; speaking is off, so the page never starts talking on its own.
 
 ### Light and dark
 
@@ -190,20 +198,42 @@ npm run build
 
 ## Tests
 
-Six offline suites, none of which needs a running DSH:
+`npm test` runs five suites, none of which needs a running DSH:
 
 ```sh
-npm test                # runs the five below
+npm test                # equivalent to the four commands below
 
-npm run check           # frame tables agree: client PORTRAIT_ANCHORS ↔ host FRAMES ↔ files on disk
-npm run test:unit       # pure functions, asset routes, Range/ETag/304/416, and the voice player
+npm run check           # frame tables agree (client PORTRAIT_ANCHORS ↔ host FRAMES ↔ files on disk), pack manifest, tarball contents
+npm run test:unit       # logic + assets + voice: pure functions, asset routes and Range/ETag/304/416, the voice player
 npm run test:dom        # browser half: style injection, backdrop, appearance button, full teardown
-npm run test:render     # React half: drag preview, commit on release, bind switch, which clip plays
+npm run test:render     # React half: drag preview, commit on release, both switches, which clip plays, hook order
 ```
 
-Everything runs after `npm install`; `jsdom`, `react` and `react-dom` are devDependencies. If your machine keeps them outside the checkout, override with `JSDOM_PATH` / `REACT_PATH`.
+Everything runs after `npm install`; `jsdom`, `react`, `react-dom`, `esbuild` and `sharp` are devDependencies. If your machine keeps them outside the checkout, override with `JSDOM_PATH` / `REACT_PATH`.
 
-The fifth suite, `test:compose`, runs the **real runtime's** `loadProfileDirectory()` and therefore needs DSH itself:
+### All scripts
+
+| Command | Effect |
+| --- | --- |
+| `npm run build` | Bundle the browser half into `lib/client.js` |
+| `npm run portraits` | Regenerate the portraits frame by frame (needs `IMAGE_KEY`); `-- --only <frame>` redraws one |
+| `npm run voices` | Import clips from `.cache/raw-voice/` into `assets/voice/` |
+| `npm run preview` | Rebuild the 31-frame preview image at the top of this README |
+| `npm run skin` | Toggle this plugin (`-- on` / `-- off`); only edits the profile's bundles array |
+| `npm test` | The five offline suites |
+| `npm run test:compose` | Verify profile composition against the real runtime; needs DSH itself |
+
+`npm run skin` also needs a full quit and reopen. It only adds or removes `@daily-vibe/dsh-client-wukong-intensity-skin` and leaves every other bundle alone.
+
+### Not part of `npm test`
+
+**The probe** — verifies in a real Chromium that the four clips decode, play, and that `currentTime` actually advances. Worth running after swapping audio:
+
+```sh
+node tools/probe-voice.mjs
+```
+
+**The composition suite** — `test:compose` runs the **real runtime's** `loadProfileDirectory()` and therefore needs DSH itself:
 
 ```powershell
 $env:ELECTRON_RUN_AS_NODE = '1'
