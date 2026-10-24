@@ -136,8 +136,9 @@ npm run build
 五套离线测试，都不需要启动 DSH：
 
 ```sh
-npm test                # 前四套：logic + assets + dom + render
+npm test                # 一次跑完下面四项
 
+npm run check           # 帧表一致性：客户端 PORTRAIT_ANCHORS ↔ 宿主 FRAMES ↔ 磁盘文件
 npm run test:unit       # 档位/果位/配色纯函数；宿主半部的 31 条资源路由、Range/ETag/304/416
 npm run test:dom        # 浏览器半部：样式注入、背景层、外观按钮、整体卸载
 npm run test:render     # React 半部：滑块拖动预览、松手提交、绑定开关

@@ -136,8 +136,9 @@ npm run build
 Five offline suites, none of which needs a running DSH:
 
 ```sh
-npm test                # the first four: logic + assets + dom + render
+npm test                # runs the four below
 
+npm run check           # frame tables agree: client PORTRAIT_ANCHORS ↔ host FRAMES ↔ files on disk
 npm run test:unit       # pure functions, plus the node half's 31 asset routes and Range/ETag/304/416
 npm run test:dom        # browser half: style injection, backdrop, appearance button, full teardown
 npm run test:render     # React half: drag preview, commit on release, bind switch

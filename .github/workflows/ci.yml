@@ -49,30 +49,7 @@ jobs:
         run: npm run test:render
 
       - name: Portrait ladder is complete
-        shell: bash
-        run: |
-          set -euo pipefail
-          node -e '
-            const { readdirSync, statSync, readFileSync } = require("node:fs");
-            const src = readFileSync("src/client/index.jsx", "utf8");
-            const expected = [...src.matchAll(/file:\s*"([^"]+\.webp)"/g)].map((m) => m[1]);
-            const onDisk = readdirSync("assets/portrait").filter((f) => f.endsWith(".webp"));
-            const missing = expected.filter((f) => !onDisk.includes(f));
-            const extra = onDisk.filter((f) => !expected.includes(f));
-            if (missing.length || extra.length) {
-              if (missing.length) console.error("missing frames: " + missing.join(", "));
-              if (extra.length) console.error("unreferenced frames: " + extra.join(", "));
-              process.exit(1);
-            }
-            for (const f of onDisk) {
-              const { size } = statSync("assets/portrait/" + f);
-              if (size < 20_000) {
-                console.error(f + " looks truncated (" + size + " bytes)");
-                process.exit(1);
-              }
-            }
-            console.log(onDisk.length + " frames, all referenced and non-trivial");
-          '
+        run: node ./tools/check-forward.mjs
 
   package:
     name: npm pack sanity
