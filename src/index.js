@@ -29,6 +29,25 @@ const FRAMES = [
 
 const ASSET_SPECS = FRAMES.map((name) => [`portrait/${name}.webp`, "image/webp"]);
 
+// 四句台词的音频，一句一个文件。
+//
+// 扫描整个目录而不是写死 .wav：用户换成本地拿到的原声素材时，格式可能是
+// mp3 / m4a / ogg，不该为了换个文件去改代码。同一句有多个格式时按下面的
+// 顺序取第一个，wav 优先（无损）。
+const VOICE_COUNT = 4;
+const VOICE_PREFIX = "/voice/";
+const VOICE_FORMATS = [
+  ["wav", "audio/wav"],
+  ["mp3", "audio/mpeg"],
+  ["m4a", "audio/mp4"],
+  ["ogg", "audio/ogg"],
+  ["flac", "audio/flac"],
+];
+
+function voicePathFor(rank) {
+  return fileURLToPath(new URL(`../assets/voice/line-${rank}`, import.meta.url));
+}
+
 function send(res, status, headers = {}) {
   res.writeHead(status, {
     "X-Content-Type-Options": "nosniff",
@@ -52,6 +71,35 @@ function buildAssets() {
       });
     } catch {
       // A missing optional medium falls back to the browser-side gradient.
+    }
+  }
+  return assets;
+}
+
+// 音频走独立前缀，和插件被挂载的位置无关：前端固定请求 /voice/rank-N。
+// 每个级别挑一个实际存在的格式，格式和扩展名一起记下来给路由用。
+function buildVoiceAssets() {
+  const assets = new Map();
+  for (let rank = 0; rank < VOICE_COUNT; rank += 1) {
+    const base = voicePathFor(rank);
+    for (const [extension, type] of VOICE_FORMATS) {
+      const path = `${base}.${extension}`;
+      let info;
+      try {
+        info = statSync(path);
+      } catch {
+        continue; // 这个格式没有，试下一个
+      }
+      if (!info.isFile()) continue;
+      assets.set(`${VOICE_PREFIX}line-${rank}.${extension}`, {
+        path,
+        type,
+        size: info.size,
+        etag: `W/"${info.size.toString(16)}-${Math.trunc(info.mtimeMs).toString(16)}"`,
+        rank,
+        extension,
+      });
+      break; // 一句只要一个文件
     }
   }
   return assets;
@@ -149,4 +197,50 @@ export function apply(ctx) {
       activeStreams.clear();
     };
   }, "wukong-intensity-skin: static media route");
+
+  ctx.effect(() => {
+    const voiceAssets = buildVoiceAssets();
+    const handler = createAssetHandler(voiceAssets, activeStreams);
+    const unregister = [...voiceAssets.keys()].map((path) => ctx.webServer.register({
+      kind: "exact",
+      path,
+      handler,
+    }));
+
+    // 清单：告诉前端每一句实际是哪个格式。换素材时只换文件，不用改代码。
+    const manifest = JSON.stringify({
+      lines: Array.from({ length: VOICE_COUNT }, (_, line) => {
+        for (const [extension] of VOICE_FORMATS) {
+          if (voiceAssets.has(`${VOICE_PREFIX}line-${line}.${extension}`)) {
+            return `${VOICE_PREFIX}line-${line}.${extension}`;
+          }
+        }
+        return null;
+      }),
+    });
+    const manifestBody = Buffer.from(manifest, "utf8");
+    unregister.push(ctx.webServer.register({
+      kind: "exact",
+      path: `${VOICE_PREFIX}manifest.json`,
+      handler: (req, res) => {
+        if (req.method !== "GET" && req.method !== "HEAD") {
+          send(res, 405, { Allow: "GET, HEAD" });
+          return;
+        }
+        res.writeHead(200, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": String(manifestBody.byteLength),
+          "Cache-Control": "private, max-age=0, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+        });
+        res.end(req.method === "HEAD" ? undefined : manifestBody);
+      },
+    }));
+
+    return () => {
+      for (const dispose of unregister) dispose();
+      for (const stream of activeStreams) stream.destroy();
+      activeStreams.clear();
+    };
+  }, "wukong-intensity-skin: spoken line audio route");
 }

@@ -84,11 +84,41 @@ check("declares the webServer dependency", () => {
   assert.equal(ASSET_PREFIX, "/plugins/dsh-client-wukong-intensity-skin/assets/");
 });
 
+// 两类路由：人像在 ASSET_PREFIX 下，台词音频在 /voice/ 下，外加一个清单。
+const VOICE_PREFIX = "/voice/";
+const MANIFEST_PATH = `${VOICE_PREFIX}manifest.json`;
+const portraitRoutes = [...routes.keys()].filter((path) => !path.startsWith(VOICE_PREFIX));
+const voiceRoutes = [...routes.keys()].filter(
+  (path) => path.startsWith(VOICE_PREFIX) && path !== MANIFEST_PATH,
+);
+
 check("registers one exact route per shipped frame", () => {
-  assert.ok(routes.size >= 31, `expected >= 31 routes, got ${routes.size}`);
-  for (const path of routes.keys()) {
+  assert.ok(portraitRoutes.length >= 31, `expected >= 31 portrait routes, got ${portraitRoutes.length}`);
+  for (const path of portraitRoutes) {
     assert.ok(path.startsWith(ASSET_PREFIX), `route escaped the prefix: ${path}`);
   }
+});
+
+check("registers one route per spoken line, whatever the format", () => {
+  // 音频现在由用户自己提供（原声素材），仓库里可能一个都没有。
+  // 有文件就必须有路由，没有文件也不算错——前端会静默不出声。
+  const expected = [];
+  for (let line = 0; line < 4; line += 1) {
+    for (const extension of ["wav", "mp3", "m4a", "ogg", "flac"]) {
+      const path = fileURLToPath(new URL(`../assets/voice/line-${line}.${extension}`, import.meta.url));
+      try {
+        if (statSync(path).isFile()) expected.push(`${VOICE_PREFIX}line-${line}.${extension}`);
+      } catch {
+        // 这个格式没有
+      }
+    }
+  }
+  assert.deepEqual(voiceRoutes.sort(), expected.sort(), "routes and files disagree");
+  assert.ok(voiceRoutes.length <= 4, `at most 4 lines, got ${voiceRoutes.length}`);
+});
+
+check("serves a manifest so the client learns the real format", () => {
+  assert.ok(routes.has(MANIFEST_PATH), "no manifest route");
 });
 
 // Every anchor the client asks for must be routable, or the portrait silently
@@ -104,14 +134,45 @@ check("every client anchor has a live route", () => {
   assert.deepEqual(missing, [], `missing routes: ${missing.join(", ")}`);
 });
 
-check("every route resolves to a real WebP on disk", () => {
+check("every route resolves to a real file on disk", () => {
   const broken = [];
   for (const path of routes.keys()) {
-    const name = path.slice(ASSET_PREFIX.length);
+    // 清单是运行时拼出来的，磁盘上没有对应文件。
+    if (path === MANIFEST_PATH) continue;
+    const name = path.startsWith(VOICE_PREFIX)
+      ? `voice/${path.slice(VOICE_PREFIX.length)}`
+      : path.slice(ASSET_PREFIX.length);
     const file = fileURLToPath(new URL(`../assets/${name}`, import.meta.url));
     if (!statSync(file).isFile()) broken.push(name);
   }
   assert.deepEqual(broken, []);
+});
+
+check("any provided line audio is real audible audio", () => {
+  // 素材由用户提供，可能一个都没有。有的话就必须真的有声音，
+  // 否则等于开了开关也没用。
+  let checked = 0;
+  for (let line = 0; line < 4; line += 1) {
+    const file = fileURLToPath(new URL(`../assets/voice/line-${line}.wav`, import.meta.url));
+    let buffer;
+    try {
+      buffer = readFileSync(file);
+    } catch {
+      continue; // 这一句还没放素材
+    }
+    checked += 1;
+    assert.equal(buffer.toString("ascii", 0, 4), "RIFF", `line-${line} is not a RIFF file`);
+    assert.equal(buffer.toString("ascii", 8, 12), "WAVE", `line-${line} is not WAVE`);
+    let peak = 0;
+    for (let index = 44; index + 1 < buffer.length; index += 2) {
+      const value = Math.abs(buffer.readInt16LE(index));
+      if (value > peak) peak = value;
+    }
+    assert.ok(peak > 2000, `line-${line} is silent (peak ${peak})`);
+  }
+  if (checked === 0) {
+    console.log("       （还没有任何台词音频，朗读会静音）");
+  }
 });
 
 const sample = `${ASSET_PREFIX}portrait/stage-30.webp`;

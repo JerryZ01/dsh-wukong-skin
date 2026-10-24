@@ -112,20 +112,48 @@ A track appears at the right edge of the composer. It reads **the current model'
 
 ### The line
 
-A line of original novel dialogue sits above the track and **changes once per rank**, six in total:
+A line sits above the track and **changes once per rank**. Four lines cover six ranks:
 
-| Rank | Line | Chapter |
+| Rank | Line | Mood |
 | --- | --- | --- |
-| Stone Monkey | 将来年老血衰，暗中有阎王老子管着。 | 1 |
-| Handsome Monkey King | 忒粗忒长些，再短细些方可用。 | 3 |
-| Great Sage Equal to Heaven | 皇帝轮流做，明年到我家。 | 7 |
-| Sun the Pilgrim | 念念回首处，即是灵山。 | 24 |
-| Victorious Fighting Buddha | 师父，此时我已成佛，与你一般。 | 100 |
-| Victorious Fighting Ancestor | 趁早儿念个松箍儿咒，脱下来，打得粉碎。 | 100 |
+| Stone Monkey | 俺老孙来也！ | announcing himself |
+| Handsome Monkey King | 吃俺老孙一棒！ | about to strike |
+| Great Sage Equal to Heaven | 吃俺老孙一棒！ | about to strike |
+| Sun the Pilgrim | 妖怪，哪里跑！ | giving chase |
+| Victorious Fighting Buddha | 妖怪，哪里跑！ | giving chase |
+| Victorious Fighting Ancestor | 俺上天看看路径，日后好带你们上去同住。 | after taking the throne |
 
-All six were checked word for word against the 100-chapter source text. One famous line was deliberately left out: 「心生种种魔生，心灭种种魔灭」 is spoken by **Tang Seng in chapter 13**, not by Wukong, so putting it here would be a misattribution.
+The middle two ranks share a line with the one before — four short lines are far easier to source real audio for than six.
+
+> Earlier versions quoted the 100-chapter novel verbatim. Those lines were accurate on paper, but no actor ever recorded them, so they could not be matched to real audio. The set is now chosen by what actually exists on sound archives.
 
 The line follows the thumb immediately — it does not wait for the commit — and fades to 35% while you drag so it does not compete with the step tooltip.
+
+### Speaking it aloud
+
+Turn on **Speak the line aloud** in settings and the skin reads the line when you cross into a new rank.
+
+- It plays **four audio files** (`assets/voice/line-N.*`) served by the plugin's own static route.
+- `wav` / `mp3` / `m4a` / `ogg` / `flac` all work; the host scans the directory and reports the real format to the client through `/voice/manifest.json`.
+- Four lines cover six ranks: `[0, 1, 1, 2, 2, 3]`.
+- All four are preloaded on mount, so changing rank is a replay with no network hop.
+- Crossing into a new rank stops the previous clip, otherwise two lines talk over each other.
+- Turning the switch off silences immediately rather than letting the clip finish.
+- Off by **default** — the page never starts talking on its own.
+- No network, no speech API, no text ever leaves the machine.
+- **No audio ships with the repository.** You supply the clips, drop them in `.cache/raw-voice/`, and run `npm run voices`.
+
+**Why not `speechSynthesis`**: it was tried. In Electron the autoplay policy silently rejects it (`error: not-allowed`), the first synchronous `getVoices()` call returns an empty array, and voices differ wildly between machines. Pre-recorded files can be **verified on the spot** — decoded and played back in a real Chromium, with `currentTime` confirmed to advance.
+
+To import:
+
+```sh
+npm run voices
+```
+
+The script converts each clip to 16 kHz mono, checks that it is not silent, and writes it to `assets/voice/`. Clips go in `.cache/raw-voice/`; name them with a `line-0`…`line-3` number, or let the script match them by keywords.
+
+Changing a line means editing three places: `LINES` in `src/client/logic.js`, the `LINES` table at the top of `tools/import-voice.mjs`, and the four strings pinned in `tools/test-logic.mjs`.
 
 ### The appearance row
 
@@ -199,15 +227,15 @@ npm run build
 
 ## Tests
 
-Five offline suites, none of which needs a running DSH:
+Six offline suites, none of which needs a running DSH:
 
 ```sh
-npm test                # runs the four below
+npm test                # runs the five below
 
 npm run check           # frame tables agree: client PORTRAIT_ANCHORS ↔ host FRAMES ↔ files on disk
-npm run test:unit       # pure functions, plus the node half's 31 asset routes and Range/ETag/304/416
+npm run test:unit       # pure functions, asset routes, Range/ETag/304/416, and the voice player
 npm run test:dom        # browser half: style injection, backdrop, appearance button, full teardown
-npm run test:render     # React half: drag preview, commit on release, bind switch
+npm run test:render     # React half: drag preview, commit on release, bind switch, which clip plays
 ```
 
 Everything runs after `npm install`; `jsdom`, `react` and `react-dom` are devDependencies. If your machine keeps them outside the checkout, override with `JSDOM_PATH` / `REACT_PATH`.

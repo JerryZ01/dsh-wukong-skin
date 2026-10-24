@@ -116,10 +116,14 @@ check("there is exactly one line per rank, in rank order", () => {
   assert.deepEqual(LINES.map((line) => line.rank), [0, 1, 2, 3, 4, 5]);
 });
 
-check("each line carries a chapter citation", () => {
+check("every line has text and is short enough to land on a rank change", () => {
   for (const line of LINES) {
     assert.ok(line.text.length > 0, `rank ${line.rank} has no text`);
-    assert.match(line.source, /^第.+回$/, `rank ${line.rank} source: ${line.source}`);
+    // 切档是即时反馈，句子太长会拖在后面。顶档那句是真素材
+    // （「俺上天看看路径，日后好带你们上去同住。」），比其余三句长得多，
+    // 所以上限放宽到 20，其余三句仍按 10 看着。
+    const limit = line.rank === 5 ? 20 : 10;
+    assert.ok(line.text.length <= limit, `rank ${line.rank} is ${line.text.length} chars, over ${limit}`);
   }
 });
 
@@ -150,13 +154,16 @@ check("out-of-range frames still resolve to a line", () => {
   assert.equal(lineForFrame(9999).rank, 5);
 });
 
-check("the four best-known lines are the ones in the source text", () => {
-  // 逐字对照原著，改了就得重新核对，所以钉死在测试里。
-  const byRank = Object.fromEntries(LINES.map((line) => [line.rank, line.text]));
-  assert.equal(byRank[2], "皇帝轮流做，明年到我家。");
-  assert.equal(byRank[3], "念念回首处，即是灵山。");
-  assert.match(byRank[1], /忒粗忒长些，再短细些方可用。/);
-  assert.match(byRank[0], /暗中有阎王老子管着/);
+check("the four lines are the short catchphrases", () => {
+  // 这四句是 86 版里反复出现的固定句式，也最容易在音效平台搜到。
+  // 换台词的同时要改 assets/voice/line-N.* 与 generate/import 脚本。
+  const texts = new Set(LINES.map((line) => line.text));
+  assert.deepEqual([...texts].sort(), [
+    "俺老孙来也！",
+    "俺上天看看路径，日后好带你们上去同住。",
+    "吃俺老孙一棒！",
+    "妖怪，哪里跑！",
+  ].sort());
 });
 
 check("no line is attributed to a speaker other than Wukong", () => {

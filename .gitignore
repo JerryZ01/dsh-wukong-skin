@@ -29,3 +29,16 @@ pnpm-debug.log*
 .env.*
 !.env.example
 *.pem
+
+# 台词音频：由使用者自行准备，仓库不收录
+#
+# 素材多为 1986 版电视剧的录音，著作权归央视、表演者权归李世宏/李扬。
+# 本地随便用，但不要连仓库一起公开分发。
+assets/voice/*.wav
+assets/voice/*.mp3
+assets/voice/*.m4a
+assets/voice/*.ogg
+assets/voice/*.flac
+assets/voice/*.aac
+assets/voice/*.wma
+!assets/voice/.gitkeep

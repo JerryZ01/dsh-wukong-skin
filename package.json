@@ -32,9 +32,11 @@
   },
   "files": [
     "assets/portrait",
+    "assets/voice",
     "cordis.patch.yml",
     "lib/client.js",
     "lib/client.js.map",
+    "src/client/voice.js",
     "src/index.js",
     "src/range.js",
     "README.md"
@@ -42,11 +44,12 @@
   "scripts": {
     "build": "node ./scripts/build-client.mjs",
     "portraits": "node ./tools/generate-portraits.mjs",
+    "voices": "node ./tools/import-voice.mjs",
     "preview": "node ./tools/ladder-preview.mjs",
     "skin": "node ./tools/switch-skin.mjs",
     "test": "npm run check && npm run test:unit && npm run test:dom && npm run test:render",
     "check": "node ./tools/check-forward.mjs && node ./tools/check-pack.mjs && node ./tools/check-tarball.mjs",
-    "test:unit": "node ./tools/test-logic.mjs && node ./tools/test-assets.mjs",
+    "test:unit": "node ./tools/test-logic.mjs && node ./tools/test-assets.mjs && node ./tools/test-voice.mjs",
     "test:dom": "node ./tools/test-dom.mjs",
     "test:render": "node ./tools/test-render.mjs",
     "test:compose": "node ./tools/test-compose.mjs"

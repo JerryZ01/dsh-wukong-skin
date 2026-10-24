@@ -172,9 +172,12 @@ check("the appearance button joins the native cube row", () => {
   assert.equal(row.children.length, 4, "the three native cubes must survive");
 });
 
-check("both slots registered with distinct ids", () => {
+check("every slot registered with a distinct id", () => {
   const names = slots.map((slot) => slot.options.name).sort();
-  assert.deepEqual(names, ["conversation.input.right", "settings.general.item"]);
+  assert.deepEqual(names, [
+    "conversation.input.right",
+    "settings.general.item",
+  ]);
   assert.deepEqual(slots.map((slot) => slot.options.id).sort(), [
     "wukong-effort-binding",
     "wukong-intensity-control",

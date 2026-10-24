@@ -3,6 +3,7 @@ import { Switch } from "@deepseek-ai/dsh-client-ui-primitives";
 import styles from "./skin.css";
 import { installWukongAppearanceButton } from "./appearance.js";
 import { createPortraitLoader } from "./portrait-loader.js";
+import { createVoice, loadVoiceManifest } from "./voice.js";
 import {
   PREVIEW_MAX_FRAME,
   frameForEffort,
@@ -18,6 +19,7 @@ const PACKAGE_ID = "dsh-client-wukong-intensity-skin";
 const LOCALE_NAMESPACE = "wukong.skin";
 const ASSET_PREFIX = `/plugins/${PACKAGE_ID}/assets`;
 const BIND_EFFORT_KEY = "dsh-wukong-intensity-skin.bind-effort";
+const SPEAK_KEY = "dsh-wukong-intensity-skin.speak";
 
 // The 31-step ladder: a stage frame every six levels, with 15 and 27 carrying
 // the costume change so the sequence never jumps across a dress boundary.
@@ -266,15 +268,59 @@ function WukongEffortSlider({ directory, load, select, presenter, scope }) {
     presenter.setFrame(committedFrame);
   }, [bindEffort, committedFrame, pending, presenter]);
 
+  // 所有 hook 必须先于任何提前 return，否则 enabled / reasoning 在两次渲染
+  // 之间变化时 hook 数量会跟着变，React 会抛 "Rendered more hooks than
+  // during the previous render" 并把整个组件崩掉。
+  const line = lineForFrame(frame);
+  const rankIndex = rankIndexForFrame(frame);
+
+  // 朗读：只在跨果位时念一次，拖动过程中的微小变化不重复触发。
+  // 首次渲染、切回皮肤、以及静音恢复时都不念，避免一进页面就开口。
+  const voice = useMemo(() => createVoice(), []);
+  const spokenRank = useRef(null);
+  // 关掉开关要立刻掐掉正在念的那句，不能等它念完。
+  useEffect(() => {
+    voice.setMuted(!skin.speak);
+  }, [skin.speak, voice]);
+  useEffect(() => {
+    if (!enabled) return;
+    if (spokenRank.current === rankIndex) return;
+    const first = spokenRank.current === null;
+    spokenRank.current = rankIndex;
+    // 首帧只记下位置，不开口。
+    if (first) return;
+    if (line === undefined) return;
+    voice.speak(line.text, rankIndex);
+    // 只依赖 rankIndex：拖动时 frame 每帧都在变，但只有跨果位才需要开口。
+  }, [enabled, rankIndex, line, voice]);
+
+  // 音频文件预加载一次，第一次跨果位就不会卡在网络上。
+  // 先读清单：素材可能是 wav / mp3 / m4a，具体格式由宿主扫描目录决定。
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    void loadVoiceManifest((input, init) => fetch(input, init)).then(() => {
+      if (!cancelled) voice.preload();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, voice]);
+
+  useEffect(() => () => voice.dispose(), [voice]);
+
+  // hook 全部跑完之后才允许提前返回。
   if (!enabled) return null;
   if (bindEffort && (reasoning === null || efforts.length < 2)) return null;
+
+  // hook 全部跑完之后才允许提前返回。
+  // 注意：朗读的 effect 在上面，所以即使滑块本身不渲染（模型没有推理档位），
+  // 台词逻辑仍然是挂载好的。
 
   const previewIndex = nearestEffortIndex(frame, efforts);
   const previewEffort = efforts[previewIndex];
   const progressRatio = frame / PREVIEW_MAX_FRAME;
   const tooltipLabel = indicatorLabel(frame, bindEffort ? efforts : []);
-  const line = lineForFrame(frame);
-  const rankIndex = rankIndexForFrame(frame);
 
   const commit = async (rawFrame) => {
     if (!bindEffort) {
@@ -352,6 +398,7 @@ function WukongEffortSlider({ directory, load, select, presenter, scope }) {
           dragging.current = true;
           dragStartFrame.current = frame;
           setInteracting(true);
+          // 音频已在挂载时预加载；真实手势里重放不会再被自动播放策略拦。
         }}
         onInput={(event) => {
           dragging.current = true;
@@ -400,18 +447,33 @@ function EffortBindingRow({ scope, t }) {
   if (!snapshot.enabled) return null;
 
   return (
-    <div className="wk-appearance-binding" data-plugin={PACKAGE_ID}>
-      <span>{t("effort.binding")}</span>
-      <Switch
-        checked={snapshot.bindEffort}
-        disabled={pending}
-        label={t("effort.binding")}
-        onChange={(next) => {
-          if (pending) return;
-          setPending(true);
-          void scope.setBindEffort(next).catch(() => undefined).finally(() => setPending(false));
-        }}
-      />
+    <div className="wk-settings-group" data-plugin={PACKAGE_ID}>
+      <div className="wk-appearance-binding">
+        <span>{t("effort.binding")}</span>
+        <Switch
+          checked={snapshot.bindEffort}
+          disabled={pending}
+          label={t("effort.binding")}
+          onChange={(next) => {
+            if (pending) return;
+            setPending(true);
+            void scope.setBindEffort(next).catch(() => undefined).finally(() => setPending(false));
+          }}
+        />
+      </div>
+      <div className="wk-appearance-binding" data-row="speak">
+        <span>{t("effort.speak")}</span>
+        <Switch
+          checked={snapshot.speak}
+          disabled={pending}
+          label={t("effort.speak")}
+          onChange={(next) => {
+            if (pending) return;
+            setPending(true);
+            void scope.setSpeak(next).catch(() => undefined).finally(() => setPending(false));
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -429,15 +491,24 @@ function createPreferenceStore() {
   let snapshot = {
     enabled: true,
     bindEffort: localStorage.getItem(BIND_EFFORT_KEY) !== "0",
+    speak: localStorage.getItem(SPEAK_KEY) === "1",
   };
   const listeners = new Set();
   const onStorage = (event) => {
-    if (event.key !== BIND_EFFORT_KEY) return;
+    if (event.key !== BIND_EFFORT_KEY && event.key !== SPEAK_KEY) return;
     const next = {
       enabled: snapshot.enabled,
-      bindEffort: event.newValue !== "0",
+      bindEffort:
+        event.key === BIND_EFFORT_KEY ? event.newValue !== "0" : snapshot.bindEffort,
+      speak: event.key === SPEAK_KEY ? event.newValue === "1" : snapshot.speak,
     };
-    if (next.enabled === snapshot.enabled && next.bindEffort === snapshot.bindEffort) return;
+    if (
+      next.enabled === snapshot.enabled &&
+      next.bindEffort === snapshot.bindEffort &&
+      next.speak === snapshot.speak
+    ) {
+      return;
+    }
     snapshot = next;
     for (const listener of listeners) listener();
   };
@@ -457,6 +528,12 @@ function createPreferenceStore() {
       if (bindEffort === snapshot.bindEffort) return;
       localStorage.setItem(BIND_EFFORT_KEY, bindEffort ? "1" : "0");
       snapshot = { ...snapshot, bindEffort };
+      for (const listener of listeners) listener();
+    },
+    async setSpeak(speak) {
+      if (speak === snapshot.speak) return;
+      localStorage.setItem(SPEAK_KEY, speak ? "1" : "0");
+      snapshot = { ...snapshot, speak };
       for (const listener of listeners) listener();
     },
     dispose() {
@@ -482,10 +559,11 @@ export function apply(ctx) {
     () => installWukongAppearanceButton(scope, presenter, PACKAGE_ID),
     "wukong-intensity-skin: native appearance extension",
   );
+
   ctx.effect(
     () => ctx.locale.register(LOCALE_NAMESPACE, {
-      zh: { "effort.binding": "滑动变佛绑定思考等级" },
-      en: { "effort.binding": "Bind slider to reasoning level" },
+      zh: { "effort.binding": "滑动变佛绑定思考等级", "effort.speak": "滑动变佛念出台词" },
+      en: { "effort.binding": "Bind slider to reasoning level", "effort.speak": "Speak the line aloud" },
     }),
     "wukong-intensity-skin: settings locale",
   );
