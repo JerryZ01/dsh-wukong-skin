@@ -15,13 +15,13 @@ Drag a single intensity slider and watch Sun Wukong grow from a stone monkey int
 
 ```sh
 # From GitHub (recommended)
-dsh plugin --profile <profile> add 'github:zhanganjie/dsh-wukong-skin'
+dsh plugin --profile <profile> add 'github:JerryZ01/dsh-wukong-skin'
 ```
 
 Or from a local checkout (handy while developing; the built bundle is committed, so there is no prepare step):
 
 ```sh
-git clone https://github.com/zhanganjie/dsh-wukong-skin.git
+git clone https://github.com/JerryZ01/dsh-wukong-skin.git
 cd dsh-wukong-skin
 dsh plugin --profile <profile> add .
 ```

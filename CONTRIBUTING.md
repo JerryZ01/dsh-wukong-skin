@@ -5,7 +5,7 @@
 ## 开发环境
 
 ```sh
-git clone https://github.com/zhanganjie/dsh-wukong-skin.git
+git clone https://github.com/JerryZ01/dsh-wukong-skin.git
 cd dsh-wukong-skin
 npm install
 npm run build     # 改过 src/ 就必须重新构建

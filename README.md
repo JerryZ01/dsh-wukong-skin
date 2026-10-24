@@ -15,13 +15,13 @@
 
 ```sh
 # 从 GitHub 装（推荐）
-dsh plugin --profile <profile> add 'github:zhanganjie/dsh-wukong-skin'
+dsh plugin --profile <profile> add 'github:JerryZ01/dsh-wukong-skin'
 ```
 
 或从本地检出装（开发迭代用，构建产物已随仓库提交，无需 prepare）：
 
 ```sh
-git clone https://github.com/zhanganjie/dsh-wukong-skin.git
+git clone https://github.com/JerryZ01/dsh-wukong-skin.git
 cd dsh-wukong-skin
 dsh plugin --profile <profile> add .
 ```

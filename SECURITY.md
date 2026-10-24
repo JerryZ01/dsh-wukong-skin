@@ -2,7 +2,7 @@
 
 ## 报告问题
 
-发现安全问题请**不要**开公开 issue。用 GitHub 的 [私密漏洞报告](https://github.com/zhanganjie/dsh-wukong-skin/security/advisories/new)，或直接邮件联系维护者。
+发现安全问题请**不要**开公开 issue。用 GitHub 的 [私密漏洞报告](https://github.com/JerryZ01/dsh-wukong-skin/security/advisories/new)，或直接邮件联系维护者。
 
 请说明：影响范围、复现步骤、你判断的严重程度。会在 7 天内回。
 

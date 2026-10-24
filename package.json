@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "滑动变佛 (Slide to Buddha): an opt-in adaptive reasoning slider skin for DeepSeek Harness that turns the model effort dial into a 31-frame journey from stone monkey to Victorious Fighting Buddha.",
   "license": "MIT",
-  "author": "zhanganjie",
+  "author": "JerryZ01",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -17,11 +17,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zhanganjie/dsh-wukong-skin.git"
+    "url": "git+https://github.com/JerryZ01/dsh-wukong-skin.git"
   },
-  "homepage": "https://github.com/zhanganjie/dsh-wukong-skin#readme",
+  "homepage": "https://github.com/JerryZ01/dsh-wukong-skin#readme",
   "bugs": {
-    "url": "https://github.com/zhanganjie/dsh-wukong-skin/issues"
+    "url": "https://github.com/JerryZ01/dsh-wukong-skin/issues"
   },
   "type": "module",
   "main": "./src/index.js",
